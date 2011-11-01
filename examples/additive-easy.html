@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<title>Additive - Easy Sample</title>
+	<script src="../libs/strscan.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../src/peggy.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../src/engine.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../src/match.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript" charset="utf-8">
+
+	var sample = new Peggy('sample');
+
+	sample.rule('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
+		return new Number(value[0]) + new Number(value[2]);
+	});
+	
+	function run(){
+		var result;
+		try{
+			result = sample.parse(document.getElementById('sample').value);
+		} catch(e){
+			result = e;
+		}
+		document.getElementById('result').innerHTML = result;
+	}
+	</script>
+</head>
+<body id="jsgrammar">
+	<h1>Additive - Easy Sample</h1>
+	<h2>Source</h2>
+	<pre>
+var sample = new Peggy('sample');
+
+sample.rule('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
+	return new Number(value[0]) + new Number(value[2]);
+});	
+		</pre>
+	<h2>Demo</h2>
+	<b>Try these:</b>
+	<ul>
+		<li>3+9</li>
+		<li>4567+9876</li>
+	</ul>
+	<input type="text" id="sample" /><input type="button" value="Run!" onclick="run()"/>
+	<h4>Result</h4>
+	<div id="result"></div>
+</body>
+</html>
