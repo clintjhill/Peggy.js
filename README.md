@@ -65,9 +65,10 @@ Examples
 TODO
 
 See More: 
-[Additive Full](examples/additive-full.html)
-[Additive Simplified](examples/additive-simplified.html)
-[Additive Easy](examples/additive-easy.html)
+
+* [Additive Full](examples/additive-full.html)
+* [Additive Simplified](examples/additive-simplified.html)
+* [Additive Easy](examples/additive-easy.html)
 
 Build
 -----

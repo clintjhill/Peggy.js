@@ -1,3 +1,5 @@
+var toString = Object.prototype.toString;
+
 var Peggy = function(name){
 	this.name = name;
 	this.rules = {count: 0};
