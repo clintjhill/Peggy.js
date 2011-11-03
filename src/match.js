@@ -1,5 +1,5 @@
 var Match = function(tree){
-	if(tree.count === 0) throw "Failed to parse " + tree.originalString;
+	if(tree.count === 0) throw 'Failed to parse "' + tree.originalString + '"';
 	this.tree = tree;
 	return this;
 };

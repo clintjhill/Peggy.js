@@ -26,8 +26,8 @@ Peggy.ruleType = function(declaration){
 		return 'stringTerminal';
 	}
 	if(type === 'array') {
-		if(declaration.sequence) return 'sequence';
-		if(declaration.choice) return 'choice';
+		if(declaration.type === 'sequence') return 'sequence';
+		if(declaration.type === 'choice') return 'choice';
 	}
 };
 
@@ -61,31 +61,40 @@ Peggy.prototype.resolveRule = function(alias){
 	}
 };
 
-Peggy.prototype.sequence = function(){
+Peggy.prototype.nonTerminal = function(declarations){
 	var rules = [];
-	for(var i = 0; i < arguments.length; i++){
-		rules.push(this.buildRule(arguments[i]));
+	for(var i = 0; i < declarations.length; i++){
+		rules.push(this.buildRule(declarations[i]));
 	}
-
-	rules.sequence = true;
 	return rules;
 };
 
-Peggy.prototype.choice = function(){
-	var rules = [];
-	for(var i = 0; i < arguments.length; i++){
-		rules.push(this.buildRule(arguments[i]));
-	}
-	
-	rules.choice = true;
+Peggy.nonTerminals = "sequence choice and or".split(" ");
+
+for(var nt in Peggy.nonTerminals){
+	var func = Peggy.nonTerminals[nt];
+	Peggy.prototype[func] = (function(func){
+		return function(){
+			var rules = this.nonTerminal(arguments);
+			rules.type = func;
+			return rules;
+		}
+	})(func);
+};
+
+Peggy.prototype.repeat = function(rule, min, max){
+	var rules = this.nonTerminal([rule]);
+	rules.type = 'repeat';
+	rules.min = min;
+	rules.max = max || 1.0/0;
 	return rules;
-}
+};
 
 Peggy.prototype.parse = function(string){
 	if(this.rules.count > 0){
 		var input = new StringScanner(string);
 		//TODO: Way to declare root in rule declarations
-		var root = this.rules[0];
+		var root = this.rules[0]
 		var match = new Match(Peggy.engine.process(root, input));
 		var result = match.result();
 		if(result[root.name]){

@@ -42,17 +42,23 @@ Peggy.engine = (function(){
 			}
 			subtree.string = matched;
 		}
-		//TODO: Add logic here to specify sequence/count/repeat event success
 		// when a branch has leaves/branches process them and add to tree
 		if(subtree.count > 0) {
-			if(rule.declaration.sequence){
-				tree[tree.count] = subtree;
-				tree.count += 1;
-			} else if(rule.declaration.choice && subtree.count === 1){
-				tree[tree.count] = subtree;
-				tree.count += 1;
+			var ruleType = rule.declaration.type, addToTree = false;
+			if(ruleType === 'sequence'){
+				addToTree = true;
+			} else if(ruleType === 'and' && rule.declaration.length === subtree.count){
+				addToTree = true;
+			} else if((ruleType === 'choice' || ruleType === 'or') && subtree.count === 1){
+				addToTree = true;
+			} else if(ruleType === 'repeat' && rule.declaration.min <= subtree.count && rule.declaration.max >= subtree.count){
+				addToTree = true;
 			} else {
-				// do nothing - nonterminal fail?
+				throw 'Failed to parse: ' + rule.name + ' on "' + matched + '"';
+			}
+			if(addToTree){
+				tree[tree.count] = subtree;
+				tree.count += 1;
 			}
 		}
 		return tree;
