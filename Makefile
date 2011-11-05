@@ -27,12 +27,20 @@ core: ${DIST_DIR}
 	@@cat ${BASE_FILES} | ${VERSION} > ${PEGGY};
 
 lint: core
-	@@echo "Checking" ${PEGGY} "against JSLint ..."; \
-	${JS_ENGINE} ${BUILD_DIR}/jslint-check.js;
+	@@if test ! -z ${JS_ENGINE}; then \
+		echo "Checking" ${PEGGY} "against JSLint ..."; \
+		${JS_ENGINE} ${BUILD_DIR}/jslint-check.js; \
+	else \
+		echo "You must have Node.js installed to check Peggy.js against JSLint."; \
+	fi
 
 min: 
-	@@echo "Minifying" ${PEGGY}; \
-	${COMPILER} ${PEGGY} > ${PEGGY_MIN}; \
+	@@if test ! -z ${JS_ENGINE}; then \
+		echo "Minifying" ${PEGGY}; \
+		${COMPILER} ${PEGGY} > ${PEGGY_MIN}; \
+	else \
+		echo "You must have Node.js installed to minify Peggy.js."; \
+	fi
 
 clean: 
 	@@echo "Removing dist"
