@@ -21,13 +21,11 @@ Peggy.ruleType = function(declaration){
 	var type = Peggy.types[toString.call(declaration)];
 	if(type === 'regexp') return 'terminal';
 	if(type === 'string') {
-		//TODO: Make clear decision about alias flagging !
 		if(declaration.charAt(0) === ':') return 'alias';
 		return 'stringTerminal';
 	}
 	if(type === 'array') {
-		if(declaration.type === 'sequence') return 'sequence';
-		if(declaration.type === 'choice') return 'choice';
+		return declaration.type;
 	}
 };
 

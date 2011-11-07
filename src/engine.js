@@ -15,9 +15,17 @@ Peggy.engine = (function(){
 		return tree;
 	};
 	
+	var safeRegExp = function(declaration){
+		if(declaration.length === 1 && /\W/.test(declaration)){
+			return new RegExp('\\' + declaration);
+		} else {
+			return new RegExp(declaration);
+		}
+	};
+	
 	var terminal = function(rule, input, tree){
 		var regex = (rule.type === 'stringTerminal') ? 
-			new RegExp('\\' + rule.declaration) : 
+			safeRegExp(rule.declaration) : 
 			rule.declaration;
 		var match = input.scan(regex);
         if (match) {

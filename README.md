@@ -81,7 +81,9 @@ Build
 
 ### Requirements to build
 1. GNU Make
-2. Node 0.5.0 or greater
+2. [Node.js](http://nodejs.org/) 0.5.0 or greater
+3. [Node.js Package Manager](http://npmjs.org/) 1.0.0 or greater
+4. node-qunit `npm -g install qunit`
 
 Roadmap
 -------

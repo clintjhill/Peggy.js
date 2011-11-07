@@ -32,12 +32,11 @@ Match.prototype.getValues = function(match){
 		var value = {};
 		for(var i = 0; i < match.count; i++){
 			var rule = match[i].rule;
-			if(!rule.name && rule.isTerminal){
-				value[i] = match[i].string;
-			}
-			if(rule.name && rule.extension){
-				var v = rule.isTerminal ? match[i].string : this.getValues(match[i]);
-				this.safeCollect(value, rule.name, rule.extension(v));
+			var extended = (rule.extension) ? rule.extension(match[i].string) : match[i].string;
+			if(rule.isTerminal){
+				value[i] = extended;
+			} else {
+				this.safeCollect(value, rule.name || i, extended);	
 			}
 		}
 		return value;
