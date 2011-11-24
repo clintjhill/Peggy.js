@@ -4,6 +4,7 @@ Peggy.engine = (function(){
 		if(rule.type === 'alias'){
 			var name = rule.declaration.substr(1);
 			rule = rule.grammar.resolveRule(rule.declaration);
+			if(!rule) throw 'Failed to parse: ' + name + ' rule is not defined.';
 			rule.name = name;
 		}
 		return rule;

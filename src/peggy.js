@@ -29,6 +29,11 @@ Peggy.ruleType = function(declaration){
 	}
 };
 
+Peggy.prototype.root = function(name, declaration, extension){
+	var root = this.rule(name, declaration, extension);
+	this.rules['root'] = root;
+};
+
 Peggy.prototype.rule = function(name, declaration, extension){
 	var rule = this.buildRule(declaration || name, extension);
 	rule.name = name;
@@ -91,12 +96,11 @@ Peggy.prototype.repeat = function(rule, min, max){
 Peggy.prototype.parse = function(string){
 	if(this.rules.count > 0){
 		var input = new StringScanner(string);
-		//TODO: Way to declare root in rule declarations
-		var root = this.rules[0]
+		var root = this.rules['root'];
 		var match = new Match(Peggy.engine.process(root, input));
 		var result = match.result();
 		if(result[root.name]){
-			return result[root.name].value;
+			return (root.extension) ? root.extension(result[root.name].value) : result[root.name].value;
 		}
 	}
 };

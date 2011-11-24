@@ -19,8 +19,7 @@ Match.prototype.processMatch = function(match){
 	this.captures = this.captures || {};
 	var rule = match.rule;
 	if(rule && rule.name){
-		var c = { match: match.string };
-		c.value = (rule.extension) ? rule.extension(this.getValues(match)) : undefined;
+		var c = { match: match.string, value: this.getValues(match) };
 		this.safeCollect(this.captures, rule.name, c);
 	}
 };
@@ -32,7 +31,9 @@ Match.prototype.getValues = function(match){
 		var value = {};
 		for(var i = 0; i < match.count; i++){
 			var rule = match[i].rule;
-			var extended = (rule.extension) ? rule.extension(match[i].string) : match[i].string;
+			var extended = (rule.extension) ? 
+				rule.extension((rule.isTerminal) ?  match[i].string : this.getValues(match[i])) : 
+				match[i].string;
 			if(rule.isTerminal){
 				value[i] = extended;
 			} else {
