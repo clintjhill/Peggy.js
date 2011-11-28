@@ -12,17 +12,20 @@
 
 	var sample = new Peggy('sample');
 
-	sample.rule('additive', sample.sequence(':number', ':plus', ':number'), function(value){
+	sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
+		console.log('additive', value);
 		return value['number'][0] + value['number'][1];
 	});
 
 	sample.rule('number', sample.sequence(':digit', ':space'), function(value){
-		return value.digit;
+		console.log('number', value);
+		return value[0];
 	});
 
 	sample.rule('plus', sample.sequence('+', ':space'));
 
 	sample.rule('digit', /\d+/, function(value){ 
+		console.log('digit', value);
 		return new Number(value);
 	});
 

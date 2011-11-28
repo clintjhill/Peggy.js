@@ -1,9 +1,10 @@
 SRC_DIR = src
-TEST_DIR = test
+TEST_DIR = specs
 LIBS_DIR = libs
 BUILD_DIR = build
 DIST_DIR = ./dist
 JS_ENGINE ?= `which node nodejs`
+UNIT ?= `which jasmine-node`
 COMPILER = ${JS_ENGINE} ${BUILD_DIR}/uglify.js --unsafe
 
 BASE_FILES = ${LIBS_DIR}/strscan.js\
@@ -17,7 +18,7 @@ PEGGY_MIN = ${DIST_DIR}/peggy-min.js
 VER = ${shell cat version.txt}
 VERSION = sed "s/@VERSION/${VER}/"
 
-all: core min
+all: spec lint core min
 
 ${DIST_DIR}: 
 	@@mkdir -p ${DIST_DIR}
@@ -32,6 +33,14 @@ lint: core
 		${JS_ENGINE} ${BUILD_DIR}/jslint-check.js; \
 	else \
 		echo "You must have Node.js installed to check Peggy.js against JSLint."; \
+	fi
+
+spec: 
+	@@if test ! -z ${UNIT}; then \
+		echo "Running specs ..."; \
+		${UNIT} --color --verbose ${TEST_DIR}; \
+	else \
+		echo "You must have Node.js and jasmine-node installed to run tests."; \
 	fi
 
 min: 

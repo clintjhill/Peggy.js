@@ -1,5 +1,3 @@
-var toString = Object.prototype.toString;
-
 var Peggy = function(name){
 	this.name = name;
 	this.rules = {count: 0};
@@ -8,7 +6,6 @@ var Peggy = function(name){
 
 Peggy.version = "@VERSION";
 
-// Collection of JavaScript types (thanks jQuery)
 var jsTypes = "Boolean Number String Function Array Date RegExp Object".split(" ");
 
 Peggy.types = {};
@@ -17,8 +14,12 @@ for(var t = 0; t < jsTypes.length; t++){
 	Peggy.types["[object " + jsTypes[t] + "]"] = jsTypes[t].toLowerCase();
 }
 
+Peggy.type = function(declaration){
+	return Peggy.types[Object.prototype.toString.call(declaration)];
+}
+
 Peggy.ruleType = function(declaration){
-	var type = Peggy.types[toString.call(declaration)];
+	var type = Peggy.type(declaration);
 	if(type === 'regexp') return 'terminal';
 	if(type === 'string') {
 		if(declaration.charAt(0) === ':') return 'alias';

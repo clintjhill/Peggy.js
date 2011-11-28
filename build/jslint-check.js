@@ -1,5 +1,5 @@
 var JSLINT = require("./lib/jslint").JSLINT,
-	print = require("sys").print,
+	util = require("util"),
 	src = require("fs").readFileSync("dist/peggy.js", "utf8");
 
 JSLINT(src, { evil: true, forin: true, maxerr: 100 });
@@ -10,13 +10,15 @@ for ( var i = 0; i < e.length; i++ ) {
 	w = e[i];
 
 	found++;
-	print( "\n" + w.evidence + "\n" );
-	print( "    Problem at line " + w.line + " character " + w.character + ": " + w.reason );
+	if(w){
+		util.print( "\n" + w.evidence + "\n" );
+		util.print( "    Problem at line " + w.line + " character " + w.character + ": " + w.reason );		
+	}
 }
 
 if ( found > 0 ) {
-	print( "\n" + found + " Error(s) found.\n" );
+	util.print( "\n" + found + " Error(s) found.\n" );
 
 } else {
-	print( "JSLint check passed.\n" );
+	util.print( "JSLint check passed.\n" );
 }
