@@ -38,7 +38,7 @@ lint: core
 spec: 
 	@@if test ! -z ${UNIT}; then \
 		echo "Running specs ..."; \
-		${UNIT} --color --verbose ${TEST_DIR}; \
+		${UNIT} --color ${TEST_DIR}; \
 	else \
 		echo "You must have Node.js and jasmine-node installed to run tests."; \
 	fi
