@@ -9,8 +9,6 @@ COMPILER = ${JS_ENGINE} ${BUILD_DIR}/uglify.js --unsafe
 
 BASE_FILES = ${LIBS_DIR}/strscan.js\
 			${SRC_DIR}/peggy.js\
-			${SRC_DIR}/engine.js\
-			${SRC_DIR}/match.js\
 
 PEGGY = ${DIST_DIR}/peggy.js
 PEGGY_MIN = ${DIST_DIR}/peggy-min.js
@@ -29,10 +27,10 @@ core: ${DIST_DIR}
 
 lint: core
 	@@if test ! -z ${JS_ENGINE}; then \
-		echo "Checking" ${PEGGY} "against JSLint ..."; \
+		echo "Checking" ${PEGGY} "against JSHint ..."; \
 		${JS_ENGINE} ${BUILD_DIR}/jslint-check.js; \
 	else \
-		echo "You must have Node.js installed to check Peggy.js against JSLint."; \
+		echo "You must have Node.js installed to check Peggy.js against JSHint."; \
 	fi
 
 spec: 

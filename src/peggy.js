@@ -21,7 +21,7 @@
 
 		Peggy.type = function(declaration){
 			return Peggy.types[Object.prototype.toString.call(declaration)];
-		}
+		};
 
 		Peggy.ruleType = function(declaration){
 			var type = Peggy.type(declaration);
@@ -36,9 +36,10 @@
 		};
 		
 		Peggy.prototype = {
+
 			root: function(name, declaration, extension){
 				var root = this.rule(name, declaration, extension);
-				this.rules['root'] = root;
+				this.rules.root = root;
 			},
 
 			rule: function(name, declaration, extension){
@@ -90,7 +91,7 @@
 			parse: function(string){
 				if(this.rules.count > 0){
 					var input = new StringScanner(string);
-					var root = this.rules['root'];
+					var root = this.rules.root;
 					var match = new Peggy.Match(Peggy.engine.process(root, input));
 					var result = match.result();
 					if(result[root.name]){
@@ -102,16 +103,16 @@
 
 		Peggy.nonTerminals = "sequence choice and or".split(" ");
 
-		for(var nt in Peggy.nonTerminals){
-			var func = Peggy.nonTerminals[nt];
+		for(var i = 0; i < Peggy.nonTerminals; i++){
+			var func = Peggy.nonTerminals[i];
 			Peggy.prototype[func] = (function(func){
 				return function(){
 					var rules = this.nonTerminal(arguments);
 					rules.type = func;
 					return rules;
-				}
+				};
 			})(func);
-		};
+		}
 		
 		Peggy.engine = (function(){
 
@@ -154,11 +155,10 @@
 
 			var nonTerminal = function(rule, input, tree){
 				// set the branch with the rule it supports
-				var subtree = {rule: rule, count: 0};
+				var subtree = {rule: rule, count: 0}, matched = '';
 				for(var i = 0; i < rule.declaration.length; i++){
 					// build a branch for the tree
 					subtree = process(rule.declaration[i], input, subtree);
-					var matched = '';
 					for(var se = 0; se < subtree.count; se++){
 						if(subtree[se].string){
 							matched += subtree[se].string;
@@ -212,6 +212,7 @@
 		};
 
 		Peggy.Match.prototype = {
+
 			capture: function(tree){
 				if(!tree.count){
 					this.processMatch(tree);
