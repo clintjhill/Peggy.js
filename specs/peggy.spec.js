@@ -1,6 +1,20 @@
 var Peggy = require('../src/peggy.js').Peggy,
 	util = require('util');
 
+var ruleBuilder, terminal, stringTerminal, nonTerminal,
+	sequence, repeat, alias, choice;
+
+beforeEach(function(){
+	ruleBuilder = new Peggy("rule builder");
+	terminal = ruleBuilder.rule("terminal", /\w+/);
+	stringTerminal = ruleBuilder.rule("stringTerminal", "hello");
+	nonTerminal = ruleBuilder.rule("nonTerminal", ruleBuilder.sequence(/\s/,/\w/));
+	sequence = ruleBuilder.rule("sequence", ruleBuilder.sequence(/\s/,/\w/));
+	repeat = ruleBuilder.rule("repeat", ruleBuilder.repeat(":sequence", 1));
+	alias = ruleBuilder.rule("alias", ":repeat");
+	choice = ruleBuilder.rule("choice", ruleBuilder.choice(":alias", ":sequence"));
+});
+
 describe("Peggy instantiation", function(){
 	it("should throw on bad grammar name", function(){
 		expect(function(){
@@ -56,26 +70,13 @@ describe("Peggy rule type system", function(){
 
 describe("Peggy rule building", function(){
 
-	var ruleBuilder, terminal, stringTerminal, nonTerminal,
-		sequence, repeat, alias, choice;
-
-	beforeEach(function(){
-		ruleBuilder = new Peggy("rule builder");
-		terminal = ruleBuilder.rule("terminal", /\w+/);
-		stringTerminal = ruleBuilder.rule("stringTerminal", "hello");
-		nonTerminal = ruleBuilder.rule("nonTerminal", ruleBuilder.sequence(/\s/,/\w/));
-		sequence = ruleBuilder.rule("sequence", ruleBuilder.sequence(/\s/,/\w/));
-		repeat = ruleBuilder.rule("repeat", ruleBuilder.repeat(":sequence", 1));
-		alias = ruleBuilder.rule("alias", ":repeat");
-		choice = ruleBuilder.rule("choice", ruleBuilder.choice(":alias", ":sequence"));
-	});
-
 	it("should provide a 'root' declaration", function(){
 		var root = new Peggy("root test");
 		root.root('test');
 		expect(root.rules['root']).toBeDefined();
 		expect(root.root).toBeDefined();
 	});
+	
 	it("should build rules", function(){
 		var rule = ruleBuilder.rule("terminal", /\w+/);
 		expect(rule.grammar).toEqual(ruleBuilder);
@@ -85,11 +86,13 @@ describe("Peggy rule building", function(){
 		expect(rule.isTerminal).toBeTruthy();
 		expect(rule.extension).toBeUndefined();
 	});
+
 	it("should set isTerminal properly", function(){
 		expect(terminal.isTerminal).toBeTruthy();
 		expect(stringTerminal.isTerminal).toBeTruthy();
 		expect(nonTerminal.isTerminal).toBeFalsy();
 	});
+
 	it("should recognize rule type", function(){
 		expect(terminal.type).toEqual('terminal');
 		expect(stringTerminal.type).toEqual('stringTerminal');
@@ -98,4 +101,20 @@ describe("Peggy rule building", function(){
 		expect(alias.type).toEqual('alias');
 		expect(choice.type).toEqual('choice');
 	});
+});
+
+describe("Peggy rule resolution", function(){
+	
+	it("should resolve normal names", function(){
+		var normal = ruleBuilder.resolveRule("terminal");
+		expect(normal).toBeDefined();
+		expect(normal).toEqual(terminal);
+	});
+
+	it("should resolve alias names", function(){
+		var aliased = ruleBuilder.resolveRule(":alias");
+		expect(aliased).toBeDefined();
+		expect(aliased).toEqual(alias);
+	});
+
 });

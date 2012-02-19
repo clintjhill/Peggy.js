@@ -63,9 +63,9 @@
 			},
 
 			resolveRule: function(alias){
+				alias = alias.charAt(0) === ':' ? alias.substr(1) : alias;
 				for(var i = 0; i < this.rules.count; i++){
-					// check against alias without leading ':'
-					if(this.rules[i].name === alias.substr(1)){
+					if(this.rules[i].name === alias){
 						return this.rules[i];
 					}
 				}
