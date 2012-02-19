@@ -9,6 +9,7 @@ COMPILER = ${JS_ENGINE} ${BUILD_DIR}/uglify.js --unsafe
 
 BASE_FILES = ${LIBS_DIR}/strscan.js\
 			${SRC_DIR}/peggy.js\
+			${SRC_DIR}/grammar.js
 
 PEGGY = ${DIST_DIR}/peggy.js
 PEGGY_MIN = ${DIST_DIR}/peggy-min.js

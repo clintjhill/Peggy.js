@@ -52,7 +52,7 @@
 
 			buildRule: function(declaration, extension){
 				var type = Peggy.ruleType(declaration);
-				var rule = {
+				return {
 					grammar: this,
 					type: type,
 					declaration: declaration,
@@ -60,7 +60,6 @@
 					extension: extension,
 					isTerminal: type === 'terminal' || type === 'stringTerminal'
 				};
-				return rule;
 			},
 
 			resolveRule: function(alias){
@@ -90,10 +89,10 @@
 
 			parse: function(string){
 				if(this.rules.count > 0){
-					var input = new StringScanner(string);
-					var root = this.rules.root;
-					var match = new Peggy.Match(Peggy.engine.process(root, input));
-					var result = match.result();
+					var input = new StringScanner(string),
+						root = this.rules.root,
+						match = new Peggy.Match(Peggy.engine.process(root, input)),
+						result = match.result();
 					if(result[root.name]){
 						return (root.extension) ? root.extension(result[root.name].value) : result[root.name].value;
 					}
@@ -103,15 +102,17 @@
 
 		Peggy.nonTerminals = "sequence choice and or".split(" ");
 
-		for(var i = 0; i < Peggy.nonTerminals; i++){
+		var nonTerminalTypes = function(func){
+			return function(){
+				var rules = this.nonTerminal(arguments);
+				rules.type = func;
+				return rules;
+			};
+		};
+
+		for(var i = 0; i < Peggy.nonTerminals.length; i++){
 			var func = Peggy.nonTerminals[i];
-			Peggy.prototype[func] = (function(func){
-				return function(){
-					var rules = this.nonTerminal(arguments);
-					rules.type = func;
-					return rules;
-				};
-			})(func);
+			Peggy.prototype[func] = nonTerminalTypes(func);
 		}
 		
 		Peggy.engine = (function(){
@@ -124,23 +125,23 @@
 					rule.name = name;
 				}
 				return rule;
-			};
+			},
 
-			var defaultTree = function(input, tree){
+			defaultTree = function(input, tree){
 				// base tree model
 				tree = tree || { count: 0, originalString: input.getSource() };
 				return tree;
-			};
+			},
 
-			var safeRegExp = function(declaration){
+			safeRegExp = function(declaration){
 				if(declaration.length === 1 && /\W/.test(declaration)){
 					return new RegExp('\\' + declaration);
 				} else {
 					return new RegExp(declaration);
 				}
-			};
+			},
 
-			var terminal = function(rule, input, tree){
+			terminal = function(rule, input, tree){
 				var regex = (rule.type === 'stringTerminal') ? 
 					safeRegExp(rule.declaration) : 
 					rule.declaration;
@@ -151,9 +152,9 @@
 					tree.count += 1;
 		        }
 				return tree;
-			};
+			},
 
-			var nonTerminal = function(rule, input, tree){
+			nonTerminal = function(rule, input, tree){
 				// set the branch with the rule it supports
 				var subtree = {rule: rule, count: 0}, matched = '';
 				for(var i = 0; i < rule.declaration.length; i++){
@@ -186,9 +187,9 @@
 					}
 				}
 				return tree;
-			};
+			},
 
-			var process = function(rule, input, tree){
+			process = function(rule, input, tree){
 				rule = resolve(rule);
 				tree = defaultTree(input, tree);
 				if(rule.isTerminal) {

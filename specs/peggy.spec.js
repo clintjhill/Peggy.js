@@ -1,4 +1,5 @@
-var Peggy = require('../src/peggy.js').Peggy;
+var Peggy = require('../src/peggy.js').Peggy,
+	util = require('util');
 
 describe("Peggy instantiation", function(){
 	it("should throw on bad grammar name", function(){
@@ -26,7 +27,12 @@ describe("Peggy type system", function(){
 	it("should recognize strings", function(){
 		expect(Peggy.type("")).toEqual("string");
 	});
-	// TODO: Fulfill tests for all JS object types
+	it("should recognize regexes", function(){
+		expect(Peggy.type(/\w/)).toEqual("regexp");
+	});
+	it("should recognize numbers", function(){
+		expect(Peggy.type(3)).toEqual("number");
+	});
 });
 
 describe("Peggy rule type system", function(){
@@ -49,10 +55,47 @@ describe("Peggy rule type system", function(){
 });
 
 describe("Peggy rule building", function(){
+
+	var ruleBuilder, terminal, stringTerminal, nonTerminal,
+		sequence, repeat, alias, choice;
+
+	beforeEach(function(){
+		ruleBuilder = new Peggy("rule builder");
+		terminal = ruleBuilder.rule("terminal", /\w+/);
+		stringTerminal = ruleBuilder.rule("stringTerminal", "hello");
+		nonTerminal = ruleBuilder.rule("nonTerminal", ruleBuilder.sequence(/\s/,/\w/));
+		sequence = ruleBuilder.rule("sequence", ruleBuilder.sequence(/\s/,/\w/));
+		repeat = ruleBuilder.rule("repeat", ruleBuilder.repeat(":sequence", 1));
+		alias = ruleBuilder.rule("alias", ":repeat");
+		choice = ruleBuilder.rule("choice", ruleBuilder.choice(":alias", ":sequence"));
+	});
+
 	it("should provide a 'root' declaration", function(){
 		var root = new Peggy("root test");
 		root.root('test');
 		expect(root.rules['root']).toBeDefined();
 		expect(root.root).toBeDefined();
+	});
+	it("should build rules", function(){
+		var rule = ruleBuilder.rule("terminal", /\w+/);
+		expect(rule.grammar).toEqual(ruleBuilder);
+		expect(rule.name).toEqual('terminal');
+		expect(rule.type).toEqual('terminal');
+		expect(rule.declaration).toEqual(/\w+/);
+		expect(rule.isTerminal).toBeTruthy();
+		expect(rule.extension).toBeUndefined();
+	});
+	it("should set isTerminal properly", function(){
+		expect(terminal.isTerminal).toBeTruthy();
+		expect(stringTerminal.isTerminal).toBeTruthy();
+		expect(nonTerminal.isTerminal).toBeFalsy();
+	});
+	it("should recognize rule type", function(){
+		expect(terminal.type).toEqual('terminal');
+		expect(stringTerminal.type).toEqual('stringTerminal');
+		expect(sequence.type).toEqual('sequence');
+		expect(repeat.type).toEqual('repeat');
+		expect(alias.type).toEqual('alias');
+		expect(choice.type).toEqual('choice');
 	});
 });
