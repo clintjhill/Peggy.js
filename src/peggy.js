@@ -250,9 +250,7 @@
 
 			/* 
 				Returns the tree parameter with the addition of 
-				any matched content. The addition is represented
-				as a node named by the index and populated with the rule
-				and the string match.
+				any matched content. This addition is a leaf to the tree.
 			*/
 			terminal = function(rule, input, tree) {
 				var regex = (rule.type === 'stringTerminal') ? safeRegExp(rule.declaration) : rule.declaration,
@@ -265,43 +263,56 @@
 				return tree;
 			},
 
+			/*
+				Returns the tree parameter with the addition of
+				any matched content. This addition is a branch to the tree.
+			*/
 			nonTerminal = function(rule, input, tree) {
-				// set the branch with the rule it supports
-				var 
-					subtree = { rule: rule, count: 0, string: '' },
-					i, // iterator for declarations
-					s, // iterator for string concat on subtree
-					ruleType = rule.declaration.type;
+				var
+					// set the branch with the rule it supports 
+					branch = { rule: rule, count: 0, string: '' },
+					// guard for match count before repeat rule processing
+					originalCount = 0,
+					// iterator for declarations
+					i, 
+					// iterator for string concat on branch
+					s, 
+					// helper to add branch to return tree
+					addToTree = function(sub){
+						tree[tree.count] = sub;
+						tree.count += 1;
+					};
 
-				//TODO: Maybe use array check instead? Will 'repeat' ever be an array?
-				if(ruleType === 'sequence' || ruleType === 'choice'){
+				if(Peggy.type(rule.declaration) === 'array') {
 					for (i = 0; i < rule.declaration.length; i++) {
-						subtree = process(rule.declaration[i], input, subtree);
+						branch = process(rule.declaration[i], input, branch);
 					}	
-				} else {
-					subtree = process(rule.declaration, input, subtree);
+				} else if(rule.type === 'repeat') {
+					do{	
+						originalCount += branch.count;
+						branch = process(rule.declaration, input, branch);
+					} while(branch.count > originalCount);
 				}
 
-				if(subtree.count > 0){
-					for(s = 0; s < subtree.count; s++){
-						subtree.string += subtree[s].string;
+				// if there are matches we need to aggregate the 
+				// strings from all sub-matches to the root match
+				if(branch.count > 0){
+					for(s = 0; s < branch.count; s++){
+						branch.string += branch[s].string;
 					}
 				}
 
-				if(ruleType === 'sequence'){
-					if(subtree.count > 0){
-						tree[tree.count] = subtree;
-						tree.count += 1;
+				if(rule.type === 'sequence'){
+					if(branch.count > 0){
+						addToTree(branch);
 					}
-				} else if(ruleType === 'choice'){
-					if(subtree.count === 1){
-						tree[tree.count] = subtree;
-						tree.count += 1;
+				} else if(rule.type === 'choice'){
+					if(branch.count === 1){
+						addToTree(branch);
 					}
-				} else if(ruleType === 'repeat'){
-					if(subtree.count >= rule.declaration.min && subtree.count <= rule.declaration.max){
-						tree[tree.count] = subtree;
-						tree.count += 1;
+				} else if(rule.type === 'repeat'){
+					if(branch.count >= rule.min && branch.count <= rule.max){
+						addToTree(branch);
 					}
 				}
 

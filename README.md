@@ -133,3 +133,4 @@ Roadmap
 7. (Done) Fully embed string scanner (maybe even optimize for use case).
 8. Improve the value object that is returned to rule extensions.
 9. Improve example pages - construct a tutorial.
+10. Enhance rule API so that it includes: Zero or more, One or more, Optional, And predicate and Not predicate.
