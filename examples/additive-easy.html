@@ -5,13 +5,11 @@
 	<title>Additive - Easy Sample</title>
 	<script src="../libs/strscan.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../src/peggy.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../src/engine.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../src/match.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript" charset="utf-8">
 
 	var sample = new Peggy('sample');
 
-	sample.rule('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
+	sample.root('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
 		return new Number(value[0]) + new Number(value[2]);
 	});
 	
@@ -32,7 +30,7 @@
 	<pre>
 var sample = new Peggy('sample');
 
-sample.rule('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
+sample.root('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
 	return new Number(value[0]) + new Number(value[2]);
 });	
 		</pre>

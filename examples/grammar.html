@@ -2,12 +2,13 @@
 <html>
 <head>
 	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	<title>Additive - Full Sample</title>
+	<title>Grammar Setup</title>
 	<script src="../libs/strscan.js"></script>
 	<script src="../src/peggy.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../src/grammar.js"></script>
 	<script type="text/javascript" charset="utf-8">
-		peggy.parse("clint = { additive: /\w+/ { return value; } } ");
+		//console.log('[grammar.html] parsed', peggy.parse("clint = { additive: /\w+/ { console.log('hi'); } }"));
+		console.log('[grammar.html] parsed', peggy.parse("clint = { additive: /\w+/ }"));
 	</script>
 </head>
 <body id="jsgrammar">

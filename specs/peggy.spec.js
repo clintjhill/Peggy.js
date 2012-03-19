@@ -106,13 +106,13 @@ describe("Peggy rule building", function(){
 describe("Peggy rule resolution", function(){
 	
 	it("should resolve normal names", function(){
-		var normal = ruleBuilder.resolveRule("terminal");
+		var normal = ruleBuilder.resolveAlias("terminal");
 		expect(normal).toBeDefined();
 		expect(normal).toEqual(terminal);
 	});
 
 	it("should resolve alias names", function(){
-		var aliased = ruleBuilder.resolveRule(":alias");
+		var aliased = ruleBuilder.resolveAlias(":alias");
 		expect(aliased).toBeDefined();
 		expect(aliased).toEqual(alias);
 	});

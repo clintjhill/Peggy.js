@@ -5,13 +5,11 @@
 	<title>Additive - Simplified Sample</title>
 	<script src="../libs/strscan.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../src/peggy.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../src/engine.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../src/match.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript" charset="utf-8">
 
 	var sample = new Peggy('sample');
 
-	sample.rule('additive', sample.sequence(':number', ':plus', ':number'), function(value){
+	sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
 		return value['number'][0] + value['number'][1];
 	});
 
@@ -38,7 +36,7 @@
 	<pre>
 var sample = new Peggy('sample');
 
-sample.rule('additive', sample.sequence(':number', ':plus', ':number'), function(value){
+sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
 	return value['number'][0] + value['number'][1];
 });
 
