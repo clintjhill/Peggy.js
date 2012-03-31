@@ -7,8 +7,7 @@
 	<script src="../src/peggy.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../src/grammar.js"></script>
 	<script type="text/javascript" charset="utf-8">
-		//console.log('[grammar.html] parsed', peggy.parse("clint = { additive: /\w+/ { console.log('hi'); } }"));
-		console.log('[grammar.html] parsed', peggy.parse("clint = { additive: /\w+/, number: /\d+/ }"));
+		console.log('[grammar.html]', peggy.parse("clint = { additive: /\\z+/ {{ console.log('additive value:', value); }} , number: /\\d+/ {{ console.log('number value:', value); }} } "));
 	</script>
 </head>
 <body id="jsgrammar">

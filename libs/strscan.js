@@ -10,10 +10,7 @@
 		
 		StringScanner.prototype.scan = function(regexp) {
 			var matches = regexp.exec(this.getRemainder());
-			return (matches && matches.index === 0) ? this.setState(matches, {
-				head: this.head + matches[0].length,
-				last: this.head
-			}) : this.setState([]);
+			return (matches && matches.index === 0) ? this.setState(matches, { head: this.head + matches[0].length, last: this.head }) : this.setState([]);
 		};
 		
 		StringScanner.prototype.getRemainder = function() {

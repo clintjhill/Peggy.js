@@ -87,9 +87,13 @@
 			/*
 				Builds a rule, adds it to the collection and returns it.
 			*/
-			rule: function(name, declaration, extension) {
+			rule: function(name, declaration, extension, debugEngine, debugMatch) {
 				var rule = this.buildRule(declaration || name, extension);
 				rule.name = name;
+				// These debug flags will add debugger breakpoints at runtime if the
+				// grammar declares these booleans. Use at your own advantage and risk.
+				rule.debugEngine = debugEngine;
+				rule.debugMatch = debugMatch;
 				this.rules[this.rules.count] = rule;
 				this.rules.count += 1;
 				return rule;
@@ -151,6 +155,18 @@
 				};
 			},
 
+			oneOrMore: function(name, rule, extension) {
+				return this.repeat(name, rule, null, null, extension);
+			},
+
+			zeroOrMore: function(name, rule, extension) {
+				return this.repeat(name, rule, 0, null, extension);
+			},
+
+			zeroOrOne: function(name, rule, extension) {
+				return this.repeat(name, rule, 0, 1, extension);
+			},
+
 			/*
 				Main parsing function. If there are rules set for the Grammar
 				then it will create a new input instance and create a Peggy.Match
@@ -158,15 +174,15 @@
 				and execute an extension if one is provided.
 			*/
 			parse: function(string) {
-				if(!this.rules.root) {
+				/*if(!this.rules.root) {
 					throw "No root rule specified. Please identify 1 rule as root.";
-				}
+				}*/
 				if (this.rules.count > 0) {
 					var 
 						// scanner for the string to parse
 						input = new StringScanner(string),
 						// root rule within this Grammar
-						root = this.rules.root,
+						root = this.rules.root || this.rules[0],
 						// match object built against the root rule and the input
 						match = new Peggy.Match(Peggy.engine.process(root, input)),
 						result = match.result();
@@ -181,7 +197,7 @@
 		/*
 			Collection of NonTerminal types for the prototype API
 		*/
-		Peggy.nonTerminals = "sequence choice".split(" ");
+		Peggy.nonTerminals = "sequence choice any all".split(" ");
 
 		/*
 			Constructs a function for a NonTerminal API 
@@ -243,6 +259,8 @@
 			safeRegExp = function(declaration) {
 				if (declaration.length === 1 && /\W/.test(declaration)) {
 					return new RegExp('\\' + declaration);
+				} else if(declaration.charAt(0) === '/' && declaration.charAt(declaration.length-1) === '/') {
+					return new RegExp(declaration.substring(1, declaration.length-1));
 				} else {
 					return new RegExp(declaration);
 				}
@@ -253,8 +271,12 @@
 				any matched content. This addition is a leaf to the tree.
 			*/
 			terminal = function(rule, input, tree) {
+				
+				if(rule.debugEngine) { debugger; }
+
 				var regex = (rule.type === 'stringTerminal') ? safeRegExp(rule.declaration) : rule.declaration,
 					match = input.scan(regex);
+				
 				if (match) {
 					// add a leaf to the tree
 					tree[tree.count] = { rule: rule, string: match };
@@ -268,6 +290,9 @@
 				any matched content. This addition is a branch to the tree.
 			*/
 			nonTerminal = function(rule, input, tree) {
+				
+				if(rule.debugEngine) { debugger; }
+
 				var
 					// set the branch with the rule it supports 
 					branch = { rule: rule, count: 0, string: '' },
@@ -287,7 +312,7 @@
 					for (i = 0; i < rule.declaration.length; i++) {
 						branch = process(rule.declaration[i], input, branch);
 					}	
-				} else if(rule.type === 'repeat') {
+				} else if(rule.type === 'repeat' || rule.type === 'zeroOrMore') {
 					do{	
 						originalCount += branch.count;
 						branch = process(rule.declaration, input, branch);
@@ -304,6 +329,10 @@
 
 				if(rule.type === 'sequence'){
 					if(branch.count > 0){
+						addToTree(branch);
+					}
+				} else if(rule.type === 'all'){
+					if(branch.count === rule.declaration.length){
 						addToTree(branch);
 					}
 				} else if(rule.type === 'choice'){
@@ -415,8 +444,9 @@
 						// rule to process values against
 						rule = match[i].rule;
 						// if this match rule is Terminal - recurse for values
+						if(rule.debugMatch) { debugger; }
 						if (rule.isTerminal) {
-							value[i] = this.getValues(match[i]);
+							value[rule.name || i] = this.getValues(match[i]);
 						} else {
 						// add to the value object the value of rule extension or recurse for values
 							this.safeCollect(
