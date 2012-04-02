@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Peggy.js by clintjhill</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Peggy.js</h1>
+        <p>A simpler PEG generator in JavaScript</p>
+        <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
+        <ul>
+          <li><a href="https://github.com/clintjhill/Peggy.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/clintjhill/Peggy.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>Peggy.js - A simpler PEG generator in JavaScript</h1>
+
+<p>Peggy.js is a Parsing Expression Grammar (PEG) generator that is designed to be small and easy-to-use.</p>
+
+<p>A Parsing Expression Grammar (PEG) is used to create a set of rules from which you can parse string values. The result of this parse is to create a single tree of values as it matches the rules within the grammar.</p>
+
+<p>See Also: <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a></p>
+
+<p>With Peggy.js there are two ways to create a PEG:</p>
+
+<ul>
+<li>Peggy JavaScript API</li>
+<li>Peggy Syntax</li>
+</ul><h3>Peggy JavaScript API</h3>
+
+<p>To create a grammar begin with the Peggy constructor.</p>
+
+<pre><code>var sample = new Peggy('additive');
+</code></pre>
+
+<p>Now you can build rules from that grammar with the following API.</p>
+
+<pre><code>sample.rule(name, declaration, extension);
+</code></pre>
+
+<p>To create the top of the parsing tree (the initial starting expression) use the <code>root</code> function.</p>
+
+<pre><code>sample.root(name, declaration, extension);
+</code></pre>
+
+<p>The <code>declaration</code> parameter of <code>root</code> and <code>rule</code> functions can be a string, regular expression or an alias to another rule in the grammar. The <code>extension</code> parameter is a function used to evaluate the value of the matched string of the rule.</p>
+
+<pre><code>// Root rule being set and an example of supplying an extension to evaluate the value
+// As well the root uses a sequence of aliases to other rules within the grammar
+sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
+    return value.number[0] + value.number[1];
+});
+
+// example of using a Regular Expression as the declaration of the rule
+sample.rule('number', /\d+/, function(value){ 
+    return new Number(value); 
+});
+
+// example of using a string as the declaration of the rule
+sample.rule('number', '+');
+</code></pre>
+
+<p>With rules set against the grammar you can now parse strings.</p>
+
+<pre><code>var result = sample.parse('6+6');   
+// result is 12
+</code></pre>
+
+<h3>Peggy Syntax</h3>
+
+<p>To create a grammar named 'demo' you could write the following Peggy syntax.
+(Note: This is proposal and not implemented. There is no Peggy grammar included yet. See Roadmap.)</p>
+
+<pre><code>demo = {
+    additive: (:number, :plus, :number){
+        return value.number[0] + value.number[1];
+    },
+    number: (:digit, :space){
+        return value.digit;
+    },
+    plus: ('+', :space),
+    digit: (/\d+/, :space){
+        return new Number(value[0]);
+    },
+    space: /\s+/
+}
+</code></pre>
+
+<h4>Breakdown of Peggy Syntax</h4>
+
+<p>Using the demo grammar above the following are definitions of the components of Peggy syntax.</p>
+
+<p><strong>Grammar:</strong> <code>demo</code>
+The name of this set of rules.</p>
+
+<p><strong>Rule:</strong> <code>additive</code>
+A single rule name.</p>
+
+<p><strong>Non-Terminal:</strong> <code>(:number, :plus, :number)</code>
+A Non-Terminal definition of a rule. In this case a Sequence. Repeat and Choice Non-Terminals are also available.</p>
+
+<p><strong>Terminal:</strong> <code>/\d+/</code>
+A Terminal definition, simply a singular term from the content of the parsing. Can be a string or a regular expression.</p>
+
+<p><strong>Alias:</strong> <code>:number</code>
+A name to apply to another rule within the grammar.</p>
+
+<p><strong>Extension:</strong> <code>{ return new Number(value[0]); }</code>
+A JavaScript block of code to execute that is provided a Value object. </p>
+
+<p><strong>Value:</strong> <code>value[0]</code>
+A Value object that is the result of the expression evaluation.</p>
+
+<h3>Examples</h3>
+
+<p>Open these files in a browser to run a few sample grammars. Each demonstrates the ability to create a grammar through the Peggy JavaScript API. They are progressively built, so starting with the Additive Easy example you will see a very small and naive implementation and build on that for Simplified and Full. </p>
+
+<ul>
+<li><a href="examples/additive-easy.html">Additive Easy</a></li>
+<li><a href="examples/additive-simplified.html">Additive Simplified</a></li>
+<li><a href="examples/additive-full.html">Additive Full</a></li>
+</ul><h2>Developers</h2>
+
+<h4>Building Peggy.js</h4>
+
+<p><code>make</code> : creates both a peggy.js and a peggy-min.js file inside of a /dist directory</p>
+
+<p><code>make lint</code> : tests the source of Peggy.js against JSLint</p>
+
+<p><code>make spec</code> : run tests in /specs directory</p>
+
+<p><code>make clean</code> : deletes the /dist directory</p>
+
+<h3>Requirements to build and run tests</h3>
+
+<ol>
+<li>GNU Make</li>
+<li>
+<a href="http://nodejs.org/">Node.js</a> 0.5.0 or greater</li>
+<li>
+<a href="http://npmjs.org/">Node.js Package Manager</a> 1.0.0 or greater</li>
+<li>jasmine-node <code>npm install -g jasmine-node</code>
+</li>
+</ol><h2>Roadmap</h2>
+
+<ol>
+<li>(Done) Finish API with Repeat, And, But etc. </li>
+<li>(Done) Better parse exception handling on missed rule and/or tree inconsistencies.</li>
+<li>Full line/character error messages.</li>
+<li>Peggy grammar to allow for building rules with a Peggy syntax instead of the JavaScript API.</li>
+<li>(Done) More testing.</li>
+<li>More samples of both Peggy syntax and API.</li>
+<li>(Done) Fully embed string scanner (maybe even optimize for use case).</li>
+<li>Improve the value object that is returned to rule extensions.</li>
+<li>Improve example pages - construct a tutorial.</li>
+<li>Enhance rule API so that it includes: Zero or more, One or more, Optional, And predicate and Not predicate.</li>
+</ol>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/clintjhill">clintjhill</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
