@@ -29,15 +29,13 @@
 
 <p>Peggy.js is a Parsing Expression Grammar (PEG) generator that is designed to be small and easy-to-use.</p>
 
-<p>A Parsing Expression Grammar (PEG) is used to create a set of rules from which you can parse string values. The result of this parse is to create a single tree of values as it matches the rules within the grammar.</p>
-
-<p>See Also: <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a></p>
+<p>A <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a> (PEG) is used to create a set of rules from which you can parse string values. The result of this parse is to create a single tree of values as it matches the rules within the grammar.</p>
 
 <p>With Peggy.js there are two ways to create a PEG:</p>
 
 <ul>
 <li>Peggy JavaScript API</li>
-<li>Peggy Syntax</li>
+<li>Peggy Syntax - BETA</li>
 </ul><h3>Peggy JavaScript API</h3>
 
 <p>To create a grammar begin with the Peggy constructor.</p>
@@ -78,22 +76,21 @@ sample.rule('number', '+');
 // result is 12
 </code></pre>
 
-<h3>Peggy Syntax</h3>
+<h3>Peggy Syntax - BETA</h3>
 
-<p>To create a grammar named 'demo' you could write the following Peggy syntax.
-(Note: This is proposal and not implemented. There is no Peggy grammar included yet. See Roadmap.)</p>
+<p>To create a grammar named 'demo' you could write the following Peggy syntax.</p>
 
 <pre><code>demo = {
-    additive: (:number, :plus, :number){
+    additive: (:number, :plus, :number) {{
         return value.number[0] + value.number[1];
-    },
-    number: (:digit, :space){
+    }},
+    number: (:digit, :space) {{
         return value.digit;
-    },
+    }},
     plus: ('+', :space),
-    digit: (/\d+/, :space){
+    digit: (/\d+/, :space) {{
         return new Number(value[0]);
-    },
+    }},
     space: /\s+/
 }
 </code></pre>
@@ -117,8 +114,8 @@ A Terminal definition, simply a singular term from the content of the parsing. C
 <p><strong>Alias:</strong> <code>:number</code>
 A name to apply to another rule within the grammar.</p>
 
-<p><strong>Extension:</strong> <code>{ return new Number(value[0]); }</code>
-A JavaScript block of code to execute that is provided a Value object. </p>
+<p><strong>Extension:</strong> <code>{{ return new Number(value[0]); }}</code>
+A JavaScript block of code (wrapped with 2 curly braces) to execute that is provided a Value object. </p>
 
 <p><strong>Value:</strong> <code>value[0]</code>
 A Value object that is the result of the expression evaluation.</p>

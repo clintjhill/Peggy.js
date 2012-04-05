@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Peggy.js by clintjhill</title>
+    
+    <link rel="stylesheet" href="../stylesheets/styles.css">
+    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+    <script src="../javascripts/scale.fix.js"></script>
+    <script src="../dist/peggy.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Peggy.js</h1>
+        <p>A simpler PEG generator in JavaScript</p>
+        <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
+        <ul>
+          <li><a href="https://github.com/clintjhill/Peggy.js/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/clintjhill/Peggy.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+
+
+	<script type="text/javascript" charset="utf-8">
+
+	var sample = new Peggy('sample');
+
+	sample.root('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
+		return new Number(value[0]) + new Number(value[2]);
+	});
+	
+	function run(){
+		var result;
+		try{
+			result = sample.parse(document.getElementById('sample').value);
+		} catch(e){
+			result = e;
+		}
+		document.getElementById('result').innerHTML = result;
+	}
+	</script>
+	<h1>Additive - Easy Sample</h1>
+	<h2>Source</h2>
+	<pre><code>var sample = new Peggy('sample');
+
+sample.root('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
+	return new Number(value[0]) + new Number(value[2]);
+});</code></pre>
+	<h2>Demo</h2>
+	<b>Try these:</b>
+	<ul>
+		<li>3+9</li>
+		<li>4567+9876</li>
+	</ul>
+	<input type="text" id="sample" /><input type="button" value="Run!" onclick="run()"/>
+	<h4>Result</h4>
+	<div id="result"></div>
+
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/clintjhill">clintjhill</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
