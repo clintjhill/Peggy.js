@@ -21,11 +21,12 @@
         <p>A simpler PEG generator in JavaScript</p>
         <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
         <ul>
-          <li><a href="https://github.com/clintjhill/Peggy.js/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/clintjhill/Peggy.js/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="dist/peggy.js">Download <strong>Source</strong></a></li>
+          <li><a href="dist/peggy-min.js">Download <strong>Minified</strong></a></li>
           <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
         </ul>
-      </header>
+        <p><small>Current Version: <strong>0.7.0</strong></small></p>
+      </header> 
       <section>
 
 
@@ -44,26 +45,33 @@
 		} catch(e){
 			result = e;
 		}
-		document.getElementById('result').innerHTML = result;
+		document.getElementById('result').innerHTML = "<strong>Result:</strong>&nbsp;" + result;
 	}
 	</script>
-	<h1>Additive - Easy Sample</h1>
-	<h2>Source</h2>
+	<h1>Example: Additive - Easy</h1>
+      <p>The following is an example of creating a grammar that will parse out a very simple addition calculation. It is simple in that it does not respect whitespace and does not account for floating-point numbers.</p>
+	<h2>Grammar</h2>
+      <p>The first step is to create the grammar. The next step is to provide the grammar with a root rule that will act as the entry-point for the parsing.</p>
 	<pre><code>var sample = new Peggy('sample');
 
 sample.root('additive', sample.sequence(/\d+/, '+', /\d+/), function(value){
 	return new Number(value[0]) + new Number(value[2]);
 });</code></pre>
+      <p>The rule "additive" above simply provides a sequence of terminal rules which are un-named. The first and last are regular expressions that will look for a numeral and the second is going to look for a + symbol. The function is used as an extension to the rule and will receive the value of the parse as an argument.</p>
 	<h2>Demo</h2>
-	<b>Try these:</b>
+	<p>Try these as examples to parse:</p>
 	<ul>
 		<li>3+9</li>
 		<li>4567+9876</li>
 	</ul>
 	<input type="text" id="sample" /><input type="button" value="Run!" onclick="run()"/>
-	<h4>Result</h4>
 	<div id="result"></div>
 
+      <h2>Further Examples</h2>
+      <ul>
+        <li><a href="additive-simplified.html">Additive Simplified</a></li>
+        <li><a href="additive-full.html">Additive Full</a></li>
+      </ul>
 
       </section>
       <footer>

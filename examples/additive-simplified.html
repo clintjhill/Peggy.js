@@ -1,10 +1,34 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
-	<title>Additive - Simplified Sample</title>
-	<script src="../libs/strscan.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../src/peggy.js" type="text/javascript" charset="utf-8"></script>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Peggy.js by clintjhill</title>
+    
+    <link rel="stylesheet" href="../stylesheets/styles.css">
+    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+    <script src="../javascripts/scale.fix.js"></script>
+    <script src="../dist/peggy.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Peggy.js</h1>
+        <p>A simpler PEG generator in JavaScript</p>
+        <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
+        <ul>
+          <li><a href="dist/peggy.js">Download <strong>Source</strong></a></li>
+          <li><a href="dist/peggy-min.js">Download <strong>Minified</strong></a></li>
+          <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+        <p><small>Current Version: <strong>0.7.0</strong></small></p>
+      </header> 
+      <section>
+
 	<script type="text/javascript" charset="utf-8">
 
 	var sample = new Peggy('sample');
@@ -26,15 +50,12 @@
 		} catch(e){
 			result = e;
 		}
-		document.getElementById('result').innerHTML = result;
+		document.getElementById('result').innerHTML = "<strong>Result:</strong>&nbsp;" + result;
 	}
 	</script>
-</head>
-<body id="jsgrammar">
 	<h1>Additive - Simplified Sample</h1>
 	<h2>Source</h2>
-	<pre>
-var sample = new Peggy('sample');
+	<pre><code>var sample = new Peggy('sample');
 
 sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
 	return value['number'][0] + value['number'][1];
@@ -44,16 +65,27 @@ sample.rule('number', sample.sequence(/\d+/, /\s+/), function(value){
 	return new Number(value[0]);
 });
 
-sample.rule('plus', sample.sequence('+', /\s+/));	
-	</pre>
+sample.rule('plus', sample.sequence('+', /\s+/));	</code></pre>
 	<h2>Demo</h2>
-	<b>Try these:</b>
+	<p>Try these as examples to parse:</p>
 	<ul>
 		<li>6 + 9</li>
 		<li>456 +9</li>
 	</ul>
 	<input type="text" id="sample" /><input type="button" value="Run!" onclick="run()"/>
-	<h4>Result</h4>
 	<div id="result"></div>
-</body>
+
+      <h2>Further Examples</h2>
+      <ul>
+        <li><a href="additive-full.html">Additive Full</a></li>
+      </ul>
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/clintjhill">clintjhill</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
 </html>
