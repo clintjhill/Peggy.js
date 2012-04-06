@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Peggy.js by clintjhill</title>
+    
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Peggy.js</h1>
+        <p>A simpler PEG generator in JavaScript</p>
+        <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
+        <ul>
+          <li><a href="dist/peggy.js">Download <strong>Source</strong></a></li>
+          <li><a href="dist/peggy-min.js">Download <strong>Minified</strong></a></li>
+          <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
+        </ul>
+        <p><small>Current Version: <strong>0.7.0</strong></small></p>
+      </header> 
+      <section>
+
+<h1>Peggy API</h1>
+
+
+<h2>Peggy</h2>
+<p>This object is the core constructor of grammars. Instatiating this provides all of the rule building functionality and includes the rule engine.</p>
+<h5>Example</h5>
+<pre><code>var grammar = new Peggy('sample');</code></pre>
+<dl>
+  
+
+  <dt>peggy.rule(name, declaration, [extension])</dt>
+  <dd>The main rule building function. <code>name</code> and <code>declaration</code> are required while <code>extension</code> is optional.</dl>
+
+  <dt>peggy.root(name, declaration, [extension])</dt>
+  <dd>Identical to <code>peggy.rule</code> with the added functionality of marking this rule as the entry-point for the entire grammar.</dd>
+
+  <dt>peggy.sequence(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules to be used as a declaration for a rule.</dd>
+
+  
+</dl>
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/clintjhill">clintjhill</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+  </body>
+</html>
