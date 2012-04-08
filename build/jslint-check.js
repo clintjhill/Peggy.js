@@ -2,7 +2,7 @@ var JSHINT = require("./lib/jshint").JSHINT,
 	util = require("util"),
 	src = require("fs").readFileSync("dist/peggy.js", "utf8");
 
-JSHINT(src, { evil: true, forin: true, maxerr: 100 });
+JSHINT(src, { evil: true, forin: true, maxerr: 100, debug: true });
 
 var e = JSHINT.errors, found = 0, w;
 

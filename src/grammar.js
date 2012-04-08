@@ -86,7 +86,7 @@ peggy.rule('scriptOpen', peggy.sequence(':space', '{','{', ':space'), function(v
 	return value;
 });
 
-peggy.rule('scriptClose', peggy.sequence(':space', /}}/, ':space'), function(value){
+peggy.rule('scriptClose', peggy.sequence(':space', /\}\}/, ':space'), function(value){
 	return value;
 });
 

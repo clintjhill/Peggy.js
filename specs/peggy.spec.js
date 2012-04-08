@@ -1,8 +1,12 @@
 var Peggy = require('../src/peggy.js').Peggy,
-	util = require('util');
-
-var ruleBuilder, terminal, stringTerminal, nonTerminal,
-	sequence, repeat, alias, choice;
+	ruleBuilder, 
+	terminal, 
+	stringTerminal, 
+	nonTerminal,
+	sequence, 
+	repeat, 
+	alias, 
+	choice;
 
 beforeEach(function(){
 	ruleBuilder = new Peggy("rule builder");
@@ -106,13 +110,13 @@ describe("Peggy rule building", function(){
 describe("Peggy rule resolution", function(){
 	
 	it("should resolve normal names", function(){
-		var normal = ruleBuilder.resolveAlias("terminal");
+		var normal = Peggy.resolveAlias(ruleBuilder, "terminal");
 		expect(normal).toBeDefined();
 		expect(normal).toEqual(terminal);
 	});
 
 	it("should resolve alias names", function(){
-		var aliased = ruleBuilder.resolveAlias(":alias");
+		var aliased = Peggy.resolveAlias(ruleBuilder, ":alias");
 		expect(aliased).toBeDefined();
 		expect(aliased).toEqual(alias);
 	});

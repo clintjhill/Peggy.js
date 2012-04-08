@@ -1,7 +1,6 @@
 (function() {
 	var Peggy;
-	((typeof exports !== "undefined" && exports !== null) ? exports: this).Peggy = (function() {
-
+	((typeof exports !== "undefined" && exports !== null) ? exports : this).Peggy = (function() {
 		/*
 			Constructor for building a Peggy Grammar. 
 		*/
@@ -63,6 +62,36 @@
 		};
 
 		/*
+			Builds a rule. This is the core building function in which the
+			declaration of the rule is translated to one of the rule types. 
+		*/
+		Peggy.buildRule = function(grammar, declaration, extension) {
+			var type = Peggy.ruleType(declaration);
+			if(type === 'rule') return declaration;
+			return {
+				grammar: grammar,
+				type: type,
+				declaration: declaration,
+				// extension is a function with a value param
+				extension: extension,
+				isTerminal: type === 'terminal' || type === 'stringTerminal'
+			};
+		};
+
+		/*
+			Returns the full Rule for the alias provided. Searches against
+			the rules collection by the name of the rule. 
+		*/
+		Peggy.resolveAlias = function(grammar, alias) {
+			alias = alias.charAt(0) === ':' ? alias.substr(1) : alias;
+			for (var i = 0; i < grammar.rules.count; i++) {
+				if (grammar.rules[i].name === alias) {
+					return grammar.rules[i];
+				}
+			}
+		};
+
+		/*
 			Prototype for Peggy instances that includes the API to build 
 			a Grammar:
 
@@ -88,7 +117,7 @@
 				Builds a rule, adds it to the collection and returns it.
 			*/
 			rule: function(name, declaration, extension, debugEngine, debugMatch) {
-				var rule = this.buildRule(declaration || name, extension);
+				var rule = Peggy.buildRule(this, declaration || name, extension);
 				rule.name = name;
 				// These debug flags will add debugger breakpoints at runtime if the
 				// grammar declares these booleans. Use at your own advantage and risk.
@@ -100,43 +129,13 @@
 			},
 
 			/*
-				Builds a rule. This is the core building function in which the
-				declaration of the rule is translated to one of the rule types. 
-			*/
-			buildRule: function(declaration, extension) {
-				var type = Peggy.ruleType(declaration);
-				if(type === 'rule') return declaration;
-				return {
-					grammar: this,
-					type: type,
-					declaration: declaration,
-					// extension is a function with a value param
-					extension: extension,
-					isTerminal: type === 'terminal' || type === 'stringTerminal'
-				};
-			},
-
-			/*
-				Returns the full Rule for the alias provided. Searches against
-				the rules collection by the name of the rule. 
-			*/
-			resolveAlias: function(alias) {
-				alias = alias.charAt(0) === ':' ? alias.substr(1) : alias;
-				for (var i = 0; i < this.rules.count; i++) {
-					if (this.rules[i].name === alias) {
-						return this.rules[i];
-					}
-				}
-			},
-
-			/*
 				Returns an array that is considered a NonTerminal.
 				It is a collection of rules each built by the #buildRule function.
 			*/
 			nonTerminal: function(declarations) {
 				var rules = [];
 				for (var i = 0; i < declarations.length; i++) {
-					rules.push(this.buildRule(declarations[i]));
+					rules.push(Peggy.buildRule(this, declarations[i]));
 				}
 				return rules;
 			},
@@ -147,7 +146,7 @@
 			repeat: function(name, rule, min, max, extension) {
 				return {
 					name: name,
-					declaration: this.buildRule(rule),
+					declaration: Peggy.buildRule(this, rule),
 					min: min || 1,
 					max: max || 1.0 / 0,
 					extension: extension,
@@ -174,9 +173,6 @@
 				and execute an extension if one is provided.
 			*/
 			parse: function(string) {
-				/*if(!this.rules.root) {
-					throw "No root rule specified. Please identify 1 rule as root.";
-				}*/
 				if (this.rules.count > 0) {
 					var 
 						// scanner for the string to parse
@@ -184,7 +180,7 @@
 						// root rule within this Grammar
 						root = this.rules.root || this.rules[0],
 						// match object built against the root rule and the input
-						match = new Peggy.Match(Peggy.engine.process(root, input)),
+						match = new Peggy.Match(Peggy.Engine.process(root, input)),
 						result = match.result();
 					// Return the value of the root rule whether it is extended or not
 					if (result[root.name]) {
@@ -202,7 +198,7 @@
 		/*
 			Constructs a function for a NonTerminal API 
 		*/
-		var nonTerminalTypes = function(func) {
+		var nonTerminalFunction = function(func) {
 			return function() {
 				var rules = this.nonTerminal(arguments);
 				rules.type = func;
@@ -212,24 +208,24 @@
 
 		// Iterate NonTerminal types and add them to the Peggy.prototype
 		for (var i = 0; i < Peggy.nonTerminals.length; i++) {
-			var func = Peggy.nonTerminals[i];
-			Peggy.prototype[func] = nonTerminalTypes(func);
+			var type = Peggy.nonTerminals[i];
+			Peggy.prototype[type] = nonTerminalFunction(type);
 		}
 
 		/*
 			Peggy Rules engine. 
 		*/
-		Peggy.engine = (function() {
+		Peggy.Engine = {
 
 			/*
 				Pass through to resolve alias type rules. Requires the
 				rule to specify type. Delegates to the grammar instance alias
 				resolver.
 			*/
-			var resolve = function(rule) {
+			resolve: function(rule) {
 				if (rule.type === 'alias') {
 					var name = rule.declaration.substr(1);
-					rule = rule.grammar.resolveAlias(rule.declaration);
+					rule = Peggy.resolveAlias(rule.grammar, rule.declaration);
 					if (!rule) throw 'Failed to parse: ' + name + ' rule is not defined.';
 					rule.name = name;
 				}
@@ -242,7 +238,7 @@
 				The tree is the node list of rules and matches heirarchally 
 				orgainzed per Grammar.
 			*/
-			defaultTree = function(input, tree) {
+			defaultTree: function(input, tree) {
 				// base tree model
 				return tree || {
 					count: 0,
@@ -256,7 +252,7 @@
 				for single character Regular Expression reserved characters and 
 				escape for those.
 			*/
-			safeRegExp = function(declaration) {
+			safeRegExp: function(declaration) {
 				if (declaration.length === 1 && /\W/.test(declaration)) {
 					return new RegExp('\\' + declaration);
 				} else if(declaration.charAt(0) === '/' && declaration.charAt(declaration.length-1) === '/') {
@@ -270,11 +266,11 @@
 				Returns the tree parameter with the addition of 
 				any matched content. This addition is a leaf to the tree.
 			*/
-			terminal = function(rule, input, tree) {
+			terminal: function(rule, input, tree) {
 				
 				if(rule.debugEngine) { debugger; }
 
-				var regex = (rule.type === 'stringTerminal') ? safeRegExp(rule.declaration) : rule.declaration,
+				var regex = (rule.type === 'stringTerminal') ? this.safeRegExp(rule.declaration) : rule.declaration,
 					match = input.scan(regex);
 				
 				if (match) {
@@ -289,7 +285,7 @@
 				Returns the tree parameter with the addition of
 				any matched content. This addition is a branch to the tree.
 			*/
-			nonTerminal = function(rule, input, tree) {
+			nonTerminal: function(rule, input, tree) {
 				
 				if(rule.debugEngine) { debugger; }
 
@@ -312,7 +308,7 @@
 					for (i = 0; i < rule.declaration.length; i++) {
 						branch = process(rule.declaration[i], input, branch);
 					}	
-				} else if(rule.type === 'repeat' || rule.type === 'zeroOrMore') {
+				} else if(rule.type === 'repeat') {
 					do{	
 						originalCount += branch.count;
 						branch = process(rule.declaration, input, branch);
@@ -327,7 +323,7 @@
 					}
 				}
 
-				if(rule.type === 'sequence'){
+				if(rule.type === 'sequence' || rule.type === 'any'){
 					if(branch.count > 0){
 						addToTree(branch);
 					}
@@ -348,7 +344,7 @@
 				return tree;
 			},
 
-			process = function(rule, input, tree) {
+			process: function(rule, input, tree) {
 				rule = resolve(rule);
 				tree = defaultTree(input, tree);
 				if (rule.isTerminal) {
@@ -356,13 +352,8 @@
 				} else {
 					return nonTerminal(rule, input, tree);
 				}
-			};
-
-			return {
-				process: process
-			};
-
-		})();
+			}
+		};
 
 		/*
 			Constructor for matches against the rule tree. The tree is made up of rule nodes 
@@ -373,6 +364,7 @@
 			if (typeof tree === 'undefined') throw 'Tree must be defined for Match';
 			if (tree.count === 0) throw 'Failed to parse "' + tree.originalString + '"';
 			this.tree = tree;
+			this.captures = {};
 			return this;
 		};
 
@@ -409,9 +401,8 @@
 				Finally add the captured match to the captures tree.
 			*/
 			processMatch: function(match) {
-				this.captures = this.captures || {};
 				var c;
-				// if the match has a rule process it otherwise
+				// if the match has a rule process it, otherwise
 				// it's likely the root and safe to skip.
 				// TODO: Better check - check for root?
 				if (match.rule) {
@@ -437,18 +428,19 @@
 
 				// Terminals are easy - return the extension or the string as the value
 				if (match.rule.isTerminal) {
+					if(match.rule.debugMatch) { debugger; }
 					return (match.rule.extension)  ? match.rule.extension(match.string)  : match.string;
 				} else {
 				// NonTerminals are harder
 					for (i = 0; i < match.count; i++) {
 						// rule to process values against
 						rule = match[i].rule;
-						// if this match rule is Terminal - recurse for values
 						if(rule.debugMatch) { debugger; }
+						// if this match rule is Terminal - recurse for values
 						if (rule.isTerminal) {
 							value[rule.name || i] = this.getValues(match[i]);
 						} else {
-						// add to the value object the value of rule extension or recurse for values
+							// add to the value object the value of rule extension or recurse for values
 							this.safeCollect(
 								value, // the current value object for return from this function
 								rule.name || this.captureId, // a key to place the value against

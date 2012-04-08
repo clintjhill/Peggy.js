@@ -9,7 +9,7 @@ COMPILER = ${JS_ENGINE} ${BUILD_DIR}/uglify.js --unsafe
 
 BASE_FILES = ${LIBS_DIR}/strscan.js\
 			${SRC_DIR}/peggy.js\
-			${SRC_DIR}/grammar.js
+#			${SRC_DIR}/grammar.js
 
 PEGGY = ${DIST_DIR}/peggy.js
 PEGGY_MIN = ${DIST_DIR}/peggy-min.js
@@ -17,7 +17,7 @@ PEGGY_MIN = ${DIST_DIR}/peggy-min.js
 VER = ${shell cat version.txt}
 VERSION = sed "s/@VERSION/${VER}/"
 
-all: spec lint core min
+all: spec lint min
 
 ${DIST_DIR}: 
 	@@mkdir -p ${DIST_DIR}
