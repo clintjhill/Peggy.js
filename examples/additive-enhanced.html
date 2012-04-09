@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../stylesheets/styles.css">
     <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
     <script src="../javascripts/scale.fix.js"></script>
-    <script src="../dist/peggy.js"></script>
+    <script src="../dist/peggy-min-0.8.1.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -21,11 +21,11 @@
         <p>A simpler PEG generator in JavaScript</p>
         <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
         <ul>
-          <li><a href="dist/peggy.js">Download <strong>Source</strong></a></li>
-          <li><a href="dist/peggy-min.js">Download <strong>Minified</strong></a></li>
+          <li><a href="dist/peggy-0.8.1.js">Download <strong>Source</strong></a></li>
+          <li><a href="dist/peggy-min-0.8.1.js">Download <strong>Minified</strong></a></li>
           <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
         </ul>
-        <p><small>Current Version: <strong>0.7.0</strong></small></p>
+        <p><small>Current Version: <strong>0.8.1</strong></small></p>
       </header> 
       <section>
 
@@ -33,15 +33,15 @@
 
 	var sample = new Peggy('sample');
 
-	sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
-		return value['number'][0] + value['number'][1];
+	sample.root('additive', sample.all(':number', ':plus', ':number'), function(value){
+		return value.number[0] + value.number[1];
 	});
 
-	sample.rule('number', sample.sequence(/\d+/, /\s+/), function(value){
+	sample.rule('number', sample.any(/\d+/, /\s+/), function(value){
 		return new Number(value[0]);
 	});
 
-	sample.rule('plus', sample.sequence('+', /\s+/));
+	sample.rule('plus', sample.any('+', /\s+/));
 	
 	function run(){
 		var result;
@@ -54,18 +54,25 @@
 	}
 	</script>
 	<h1>Additive - Simplified Sample</h1>
-	<h2>Source</h2>
+      <p>As showin in the <a href="additive-easy.html">Additive - Easy</a> example, it's easy to create complex rules that provide a way to parse strings and evaluate them. But in most cases it takes even more complex structuring in order to safely parse any form of strings.</p>
+
+      <p>In the Easy example the rule didn't account for any form of whitespace. In this example we'll fix that. Also we'll provide more structure by writing isolated rules for numbers and the plus operator. These can then be re-used as aliases in other rules, specifically the root rule.</p>
+	<h2>Grammar</h2>
 	<pre><code>var sample = new Peggy('sample');
 
-sample.root('additive', sample.sequence(':number', ':plus', ':number'), function(value){
-	return value['number'][0] + value['number'][1];
+sample.root('additive', sample.all(':number', ':plus', ':number'), function(value){
+	return value.number[0] + value.number[1];
 });
 
-sample.rule('number', sample.sequence(/\d+/, /\s+/), function(value){
+sample.rule('number', sample.any(/\d+/, /\s+/), function(value){
 	return new Number(value[0]);
 });
 
-sample.rule('plus', sample.sequence('+', /\s+/));	</code></pre>
+sample.rule('plus', sample.any('+', /\s+/));</code></pre>
+      <p>The rules <code>'number'</code> and <code>'plus'</code> are rules that simply parse for a regular expression and whitespace. They use the <code>any</code> rule type that allows for the evaluation of any matches in the rule. Now within the <code>root</code> rule we can alias <code>:number</code> and <code>:plus</code>. In doing this the value object will have properties that match these names. Furthermore they will be indexed in the event the alias is used more than once.</p>
+
+      <p>Keep reading ... there's more in the <a href="../api.html">JavaScript API</a>.</p>
+
 	<h2>Demo</h2>
 	<p>Try these as examples to parse:</p>
 	<ul>
@@ -74,11 +81,6 @@ sample.rule('plus', sample.sequence('+', /\s+/));	</code></pre>
 	</ul>
 	<input type="text" id="sample" /><input type="button" value="Run!" onclick="run()"/>
 	<div id="result"></div>
-
-      <h2>Further Examples</h2>
-      <ul>
-        <li><a href="additive-full.html">Additive Full</a></li>
-      </ul>
 
       </section>
       <footer>

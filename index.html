@@ -20,27 +20,24 @@
         <p>A simpler PEG generator in JavaScript</p>
         <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
         <ul>
-          <li><a href="dist/peggy.js">Download <strong>Source</strong></a></li>
-          <li><a href="dist/peggy-min.js">Download <strong>Minified</strong></a></li>
+          <li><a href="dist/peggy-0.8.1.js">Download <strong>Source</strong></a></li>
+          <li><a href="dist/peggy-min-0.8.1.js">Download <strong>Minified</strong></a></li>
           <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
         </ul>
-        <p><small>Current Version: <strong>0.7.0</strong></small></p>
+        <p><small>Current Version: <strong>0.8.1</strong></small></p>
       </header> 
       <section>
 
 <h1>Peggy</h1>
 <p>Peggy is a Parsing Expression Grammar (PEG) generator implemented in JavaScript that is designed to be small and easy-to-use. There <a href="http://pegjs.majda.cz/">are</a> <a href="http://www.tinlizzie.org/ometa/">other</a> PEG JavaScript implementations out there but they are large or complicated. Peggy aims to be the better choice by remaining small and simple.</p>
 
-<p>A <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a> (PEG) is used to create a set of rules with which you can recognize values from within strings. They are best applied to strings that represent <a href="http://en.wikipedia.org/wiki/Formal_language">known sets of values</a> in either linear or heirarchal form. Peggy is a work-in-progress but is designed to follow the <a href="http://www.brynosaurus.com/pub/lang/peg-slides.pdf">work described by Brian Ford</a>.</p>
-
 <h3>Start with some examples</h3>
 
-<p>Each example demonstrates the ability to create a grammar through the Peggy JavaScript API. They are progressively built, so starting with the "Additive Easy" example you will see a very small and naive implementation and build on that for Simplified and Full. </p>
+<p>Each example demonstrates the ability to create a grammar through the Peggy JavaScript API. They are progressively built, so starting with the "Additive Easy" example you will see a very small and naive implementation and build on that for "Additive Enhanced".</p>
 
 <ul>
 <li><a href="examples/additive-easy.html">Additive Easy</a></li>
-<li><a href="examples/additive-simplified.html">Additive Simplified</a></li>
-<li><a href="examples/additive-full.html">Additive Full</a></li>
+<li><a href="examples/additive-enhanced.html">Additive Enhanced</a></li>
 </ul>
 
 <h3>Digging Deeper</h3>
@@ -53,7 +50,7 @@
 
 <h4>Peggy JavaScript API</h4>
 
-<p>To create a grammar begin with the Peggy constructor.</p>
+<p>To view the API documentation go to the <a href="api.html">JavaScript API</a>, or read on to begin creating a grammar with the Peggy constructor.</p>
 
 <pre><code>var sample = new Peggy('additive');
 </code></pre>
@@ -68,7 +65,7 @@
 <pre><code>sample.root(name, declaration, extension);
 </code></pre>
 
-<p>The <code>declaration</code> parameter of <code>root</code> and <code>rule</code> functions can be a string, regular expression or an alias to another rule in the grammar. Aliases take the form of the name preceded by a colon: ':number'. The <code>extension</code> parameter is a function used to evaluate the value of the matched string of the rule. It receives a <code>value</code> parameter that is an object (or array) populated with matches for the given rule.</p>
+<p>The <code>name</code> parameter provides a way for the grammar to identify the rule during processing and as well for aliasing in other rules later. The <code>declaration</code> parameter can be a string, regular expression or an alias to another rule in the grammar. Aliases take the form of the name preceded by a colon such as ':number'. The <code>extension</code> parameter is a function used to evaluate the value of the matched string. It receives a <code>value</code> parameter that is an object (or array) populated with matches for the given rule.</p>
 
 <pre><code>sample.root('additive', 
   sample.sequence(':number', ':plus', ':number'), 
@@ -93,7 +90,7 @@ sample.rule('number', '+');
 
 <h4>Peggy Syntax - BETA</h4>
 
-<p>To create a grammar named 'demo' you could write the following Peggy syntax. <em>The following is Beta and not ready for production use. It is incomplete and buggy.</em></p>
+<p>To create a grammar named 'demo' you could write the following Peggy syntax. <em>The following is Beta and not currently included in the build. It is incomplete and buggy.</em></p>
 
 <pre><code>demo = {
     additive: (:number, :plus, :number) {{
@@ -114,35 +111,34 @@ sample.rule('number', '+');
 
 <p>Using the demo grammar above the following are definitions of the components of Peggy syntax.</p>
 
-<p><strong>Grammar:</strong> <code>demo</code>
-The name of this set of rules.</p>
+<dl>
+  <dt>Grammar</dt>
+  <dd><code>demo</code> - the name of this set of rules.</dd>
+  <dt>Rule</dt>
+  <dd><code>additive</code> - a single rule name.</dd>
+  <dt>Non-Terminal</dt>
+  <dd><code>(:number, :plus, :number)</code> - a Non-Terminal definition of a rule. In this case a Sequence. Repeat and Choice Non-Terminals are also available.</dd>
+  <dt>Terminal</dt>
+  <dd><code>/\d+/</code> - a Terminal definition, simply a singular term from the content of the parsing. Can be a string or a regular expression.</dd>
+  <dt>Alias</dt>
+  <dd><code>:number</code> - a name to apply to another rule within the grammar.</dd>
+  <dt>Extension</dt>
+  <dd><code>{{ return new Number(value[0]); }}</code> - a JavaScript block of code (wrapped with 2 curly braces) to execute that is provided a <code>Value</code> object.</dd>
+  <dt>Value</dt>
+  <dd><code>value[0]</code>- an object that is the result of the rule evaluation.</dd>
+</dl>
 
-<p><strong>Rule:</strong> <code>additive</code>
-A single rule name.</p>
+<h3>What is Peggy and what's a PEG?</h3>
+<p>A <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a> (PEG) is used to create a set of rules with which you can recognize values from within strings. They are best applied to strings that represent <a href="http://en.wikipedia.org/wiki/Formal_language">known sets of values</a> in either linear or heirarchal form. Peggy is a JavaScript API to help generate a PEG.</p>
 
-<p><strong>Non-Terminal:</strong> <code>(:number, :plus, :number)</code>
-A Non-Terminal definition of a rule. In this case a Sequence. Repeat and Choice Non-Terminals are also available.</p>
-
-<p><strong>Terminal:</strong> <code>/\d+/</code>
-A Terminal definition, simply a singular term from the content of the parsing. Can be a string or a regular expression.</p>
-
-<p><strong>Alias:</strong> <code>:number</code>
-A name to apply to another rule within the grammar.</p>
-
-<p><strong>Extension:</strong> <code>{{ return new Number(value[0]); }}</code>
-A JavaScript block of code (wrapped with 2 curly braces) to execute that is provided a Value object. </p>
-
-<p><strong>Value:</strong> <code>value[0]</code>
-A Value object that is the result of the expression evaluation.</p>
-
-<h2>Developers</h2>
+<h3>Developers</h3>
 <p>If you would like to help out or extend Peggy - please do! Below is information about building this project.</p>
 
 <h4>Building Peggy.js</h4>
 <ul>
-<li><code>make</code> : creates both a peggy.js and a peggy-min.js file inside of a /dist directory</li>
+<li><code>make</code> : creates both a peggy.js and a peggy-min.js file inside of a /dist directory (with version number).</li>
 
-<li><code>make lint</code> : tests the source of Peggy.js against JSLint</li>
+<li><code>make lint</code> : tests the source of Peggy.js against JSHint</li>
 
 <li><code>make spec</code> : run tests in /specs directory</li>
 

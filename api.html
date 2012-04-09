@@ -20,11 +20,11 @@
         <p>A simpler PEG generator in JavaScript</p>
         <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
         <ul>
-          <li><a href="dist/peggy.js">Download <strong>Source</strong></a></li>
-          <li><a href="dist/peggy-min.js">Download <strong>Minified</strong></a></li>
+          <li><a href="dist/peggy-0.8.1.js">Download <strong>Source</strong></a></li>
+          <li><a href="dist/peggy-min-0.8.1.js">Download <strong>Minified</strong></a></li>
           <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
         </ul>
-        <p><small>Current Version: <strong>0.7.0</strong></small></p>
+        <p><small>Current Version: <strong>0.8.1</strong></small></p>
       </header> 
       <section>
 
@@ -36,18 +36,60 @@
 <h5>Example</h5>
 <pre><code>var grammar = new Peggy('sample');</code></pre>
 <dl>
-  
 
   <dt>peggy.rule(name, declaration, [extension])</dt>
-  <dd>The main rule building function. <code>name</code> and <code>declaration</code> are required while <code>extension</code> is optional.</dl>
+  <dd>The main rule building function. Creates a terminal rule for the grammar. 
+    <ul>
+      <li><code>name</code> - string to identify this rule within the grammar and within value objects</li>
+      <li><code>declaration</code> - the body of the rule. Can be a Regular Expression, a string terminal or an <code>:alias</code> to another rule</li>
+      <li><code>extension</code> - optional function to be executed against the result of the rule.</li>
+    </ul>
+    <pre><code>grammar.rule('number', /\d+/, function(value){
+      return new Number(value);
+}</code></pre>
+  </dd>
 
   <dt>peggy.root(name, declaration, [extension])</dt>
   <dd>Identical to <code>peggy.rule</code> with the added functionality of marking this rule as the entry-point for the entire grammar.</dd>
 
-  <dt>peggy.sequence(rule, [rule2], [rule3], [...])</dt>
-  <dd>Creates a non-terminal collection of rules to be used as a declaration for a rule.</dd>
+  <dt>peggy.any(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules, that is succesful on "any" match on the string.</dd>
 
-  
+  <dt>peggy.all(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules, that require a match on "all" parts of the rule.</dd>
+
+  <dt>peggy.choice(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules, that require a match on only one part of the rule.</dd>
+
+  <dt>peggy.oneOrMore(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules, that will repeat a match on "one or more" parts of the rule.</dd>
+
+  <dt>peggy.zeroOrMore(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules, that will repeat a match on "zero or more" parts of the rule.</dd>
+
+  <dt>peggy.zeroOrOne(rule, [rule2], [rule3], [...])</dt>
+  <dd>Creates a non-terminal collection of rules, that will repeat a match on "zero or one" part of the rule.</dd>
+
+  <dt>peggy.parse(string)</dt>
+  <dd>Parses the provided string against the <code>root</code> rule of the grammar and returns the value of that rule.</dd>
+
+  <dt>:alias</dt>
+  <dd>A string prefixed by a colon that is a reference to a previously named rule within the grammar.</dd>
+
+  <dt>extension</dt>
+  <dd>A function provided to a rule that is used to further the evaluation of the rule. It receives a <code>value</code> parameter that is the object representation of the rule.
+    <pre><code>function(value) {
+      // if only one rule declaration
+      var r = value;
+      // un-named declarations (ordinal position)
+      var u = value[0];
+      //:number provided in the rule declaration
+      var n = value.number; 
+      //:number used in multiple places in declaration
+      var narr = value.number[0];
+}</code></pre>
+  </dd>
+
 </dl>
 
       </section>
