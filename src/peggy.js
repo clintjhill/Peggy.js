@@ -306,12 +306,12 @@
 
 				if(Peggy.type(rule.declaration) === 'array') {
 					for (i = 0; i < rule.declaration.length; i++) {
-						branch = process(rule.declaration[i], input, branch);
+						branch = this.process(rule.declaration[i], input, branch);
 					}	
 				} else if(rule.type === 'repeat') {
 					do{	
 						originalCount += branch.count;
-						branch = process(rule.declaration, input, branch);
+						branch = this.process(rule.declaration, input, branch);
 					} while(branch.count > originalCount);
 				}
 
@@ -345,12 +345,12 @@
 			},
 
 			process: function(rule, input, tree) {
-				rule = resolve(rule);
-				tree = defaultTree(input, tree);
+				rule = this.resolve(rule);
+				tree = this.defaultTree(input, tree);
 				if (rule.isTerminal) {
-					return terminal(rule, input, tree);
+					return this.terminal(rule, input, tree);
 				} else {
-					return nonTerminal(rule, input, tree);
+					return this.nonTerminal(rule, input, tree);
 				}
 			}
 		};

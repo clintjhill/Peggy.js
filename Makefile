@@ -11,13 +11,16 @@ BASE_FILES = ${LIBS_DIR}/strscan.js\
 			${SRC_DIR}/peggy.js\
 #			${SRC_DIR}/grammar.js
 
-PEGGY = ${DIST_DIR}/peggy.js
-PEGGY_MIN = ${DIST_DIR}/peggy-min.js
-
 VER = ${shell cat version.txt}
-VERSION = sed "s/@VERSION/${VER}/"
+PEGGY = ${DIST_DIR}/peggy-${VER}.js
+PEGGY_CLEAN = ${DIST_DIR}/peggy-no-debug-${VER}.js
+PEGGY_MIN = ${DIST_DIR}/peggy-min-${VER}.js
 
-all: spec lint min
+VERSION = sed "s/@VERSION/${VER}/"
+REMOVE_DEBUGS = sed "/debugger;/d"
+
+#all: spec lint min
+all: lint min spec
 
 ${DIST_DIR}: 
 	@@mkdir -p ${DIST_DIR}
@@ -29,7 +32,7 @@ core: ${DIST_DIR}
 lint: core
 	@@if test ! -z ${JS_ENGINE}; then \
 		echo "Checking" ${PEGGY} "against JSHint ..."; \
-		${JS_ENGINE} ${BUILD_DIR}/jslint-check.js; \
+		${JS_ENGINE} ${BUILD_DIR}/jslint-check.js ${PEGGY}; \
 	else \
 		echo "You must have Node.js installed to check Peggy.js against JSHint."; \
 	fi
@@ -45,7 +48,8 @@ spec:
 min: 
 	@@if test ! -z ${JS_ENGINE}; then \
 		echo "Minifying" ${PEGGY}; \
-		${COMPILER} ${PEGGY} > ${PEGGY_MIN}; \
+		cat ${PEGGY} | ${REMOVE_DEBUGS} > ${PEGGY_CLEAN}; \
+		${COMPILER} ${PEGGY_CLEAN} > ${PEGGY_MIN}; \
 	else \
 		echo "You must have Node.js installed to minify Peggy.js."; \
 	fi
