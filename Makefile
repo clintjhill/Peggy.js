@@ -7,9 +7,7 @@ JS_ENGINE ?= `which node nodejs`
 UNIT ?= `which jasmine-node`
 COMPILER = ${JS_ENGINE} ${BUILD_DIR}/uglify.js --unsafe
 
-BASE_FILES = ${LIBS_DIR}/strscan.js\
-			${SRC_DIR}/peggy.js\
-#			${SRC_DIR}/grammar.js
+BASE_FILES = ${SRC_DIR}/peggy.js
 
 VER = ${shell cat version.txt}
 PEGGY = ${DIST_DIR}/peggy-${VER}.js

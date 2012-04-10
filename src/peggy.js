@@ -176,7 +176,7 @@
 				if (this.rules.count > 0) {
 					var 
 						// scanner for the string to parse
-						input = new StringScanner(string),
+						input = new Peggy.StringScanner(string),
 						// root rule within this Grammar
 						root = this.rules.root || this.rules[0],
 						// match object built against the root rule and the input
@@ -211,6 +211,40 @@
 			var type = Peggy.nonTerminals[i];
 			Peggy.prototype[type] = nonTerminalFunction(type);
 		}
+
+		Peggy.StringScanner = function(source) {
+			this.source = source.toString();
+			this.reset();
+			return this;
+		};
+		
+		Peggy.StringScanner.prototype.scan = function(regexp) {
+			var matches = regexp.exec(this.getRemainder());
+			return (matches && matches.index === 0) ? this.setState(matches, { head: this.head + matches[0].length, last: this.head }) : this.setState([]);
+		};
+		
+		Peggy.StringScanner.prototype.getRemainder = function() {
+			return this.source.slice(this.head);
+		};
+		
+		Peggy.StringScanner.prototype.setState = function(matches, values) {
+			var _a, _b;
+			this.head = (typeof(_a = ((typeof values === "undefined" || values === null) ? undefined: values.head)) !== "undefined" && _a !== null) ? _a: this.head;
+			this.last = (typeof(_b = ((typeof values === "undefined" || values === null) ? undefined: values.last)) !== "undefined" && _b !== null) ? _b: this.last;
+			this.captures = matches.slice(1);
+			return (this.match = matches[0]);
+		};
+		
+		Peggy.StringScanner.prototype.getSource = function() {
+			return this.source;
+		};
+
+		Peggy.StringScanner.prototype.reset = function() {
+		  return this.setState([], {
+			head: 0,
+			last: 0
+		  });
+		};
 
 		/*
 			Peggy Rules engine. 

@@ -1,6 +1,6 @@
-var Engine = require('../src/peggy.js').Peggy.Engine,
-	Peggy = require('../src/peggy.js').Peggy,
-	Scanner = require('../libs/strscan.js').StringScanner;
+var Peggy = require('../src/peggy.js').Peggy,
+	Engine = Peggy.Engine,
+	Scanner = Peggy.StringScanner;
 
 describe("Engine rule resolving", function(){
 	var test = new Peggy('resulv'),

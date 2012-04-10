@@ -1,0 +1,21 @@
+{
+  "author": "Clint Hill <clint.hill@gmail.com>",
+  "name": "Peggy.js",
+  "description": "A simpler PEG generator in JavaScript",
+  "version": "0.9.0",
+  "homepage": "http://clintjhill.github.com/Peggy.js/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/clintjhill/Peggy.js.git"
+  },
+  "main": "index",
+  "scripts": {
+    "test": "make spec"
+  },
+  "engines": {
+    "node": "~0.6.10"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {}
+}
