@@ -1,6 +1,6 @@
 {
   "author": "Clint Hill <clint.hill@gmail.com>",
-  "name": "Peggy.js",
+  "name": "peggy",
   "description": "A simpler PEG generator in JavaScript",
   "version": "0.9.0",
   "homepage": "http://clintjhill.github.com/Peggy.js/",
