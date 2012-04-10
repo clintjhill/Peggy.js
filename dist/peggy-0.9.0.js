@@ -1,46 +1,4 @@
 (function() {
-	var StringScanner;
-	((typeof exports !== "undefined" && exports !== null) ? exports : this).StringScanner = (function() {
-		
-		StringScanner = function(source) {
-			this.source = source.toString();
-			this.reset();
-			return this;
-		};
-		
-		StringScanner.prototype.scan = function(regexp) {
-			var matches = regexp.exec(this.getRemainder());
-			return (matches && matches.index === 0) ? this.setState(matches, { head: this.head + matches[0].length, last: this.head }) : this.setState([]);
-		};
-		
-		StringScanner.prototype.getRemainder = function() {
-			return this.source.slice(this.head);
-		};
-		
-		StringScanner.prototype.setState = function(matches, values) {
-			var _a, _b;
-			this.head = (typeof(_a = ((typeof values === "undefined" || values === null) ? undefined: values.head)) !== "undefined" && _a !== null) ? _a: this.head;
-			this.last = (typeof(_b = ((typeof values === "undefined" || values === null) ? undefined: values.last)) !== "undefined" && _b !== null) ? _b: this.last;
-			this.captures = matches.slice(1);
-			return (this.match = matches[0]);
-		};
-		
-		StringScanner.prototype.getSource = function() {
-			return this.source;
-		};
-
-		StringScanner.prototype.reset = function() {
-		  return this.setState([], {
-			head: 0,
-			last: 0
-		  });
-		};
-
-		return StringScanner;
-	})();
-	
-})();
-(function() {
 	var Peggy;
 	((typeof exports !== "undefined" && exports !== null) ? exports : this).Peggy = (function() {
 		/*
@@ -57,7 +15,7 @@
 			return this;
 		};
 
-		Peggy.version = "0.8.1";
+		Peggy.version = "0.9.0";
 
 		var jsTypes = "Boolean Number String Function Array Date RegExp Object".split(" ");
 
@@ -218,7 +176,7 @@
 				if (this.rules.count > 0) {
 					var 
 						// scanner for the string to parse
-						input = new StringScanner(string),
+						input = new Peggy.StringScanner(string),
 						// root rule within this Grammar
 						root = this.rules.root || this.rules[0],
 						// match object built against the root rule and the input
@@ -253,6 +211,40 @@
 			var type = Peggy.nonTerminals[i];
 			Peggy.prototype[type] = nonTerminalFunction(type);
 		}
+
+		Peggy.StringScanner = function(source) {
+			this.source = source.toString();
+			this.reset();
+			return this;
+		};
+		
+		Peggy.StringScanner.prototype.scan = function(regexp) {
+			var matches = regexp.exec(this.getRemainder());
+			return (matches && matches.index === 0) ? this.setState(matches, { head: this.head + matches[0].length, last: this.head }) : this.setState([]);
+		};
+		
+		Peggy.StringScanner.prototype.getRemainder = function() {
+			return this.source.slice(this.head);
+		};
+		
+		Peggy.StringScanner.prototype.setState = function(matches, values) {
+			var _a, _b;
+			this.head = (typeof(_a = ((typeof values === "undefined" || values === null) ? undefined: values.head)) !== "undefined" && _a !== null) ? _a: this.head;
+			this.last = (typeof(_b = ((typeof values === "undefined" || values === null) ? undefined: values.last)) !== "undefined" && _b !== null) ? _b: this.last;
+			this.captures = matches.slice(1);
+			return (this.match = matches[0]);
+		};
+		
+		Peggy.StringScanner.prototype.getSource = function() {
+			return this.source;
+		};
+
+		Peggy.StringScanner.prototype.reset = function() {
+		  return this.setState([], {
+			head: 0,
+			last: 0
+		  });
+		};
 
 		/*
 			Peggy Rules engine. 
@@ -310,6 +302,7 @@
 			*/
 			terminal: function(rule, input, tree) {
 				
+				if(rule.debugEngine) { debugger; }
 
 				var regex = (rule.type === 'stringTerminal') ? this.safeRegExp(rule.declaration) : rule.declaration,
 					match = input.scan(regex);
@@ -328,6 +321,7 @@
 			*/
 			nonTerminal: function(rule, input, tree) {
 				
+				if(rule.debugEngine) { debugger; }
 
 				var
 					// set the branch with the rule it supports 
@@ -468,12 +462,14 @@
 
 				// Terminals are easy - return the extension or the string as the value
 				if (match.rule.isTerminal) {
+					if(match.rule.debugMatch) { debugger; }
 					return (match.rule.extension)  ? match.rule.extension(match.string)  : match.string;
 				} else {
 				// NonTerminals are harder
 					for (i = 0; i < match.count; i++) {
 						// rule to process values against
 						rule = match[i].rule;
+						if(rule.debugMatch) { debugger; }
 						// if this match rule is Terminal - recurse for values
 						if (rule.isTerminal) {
 							value[rule.name || i] = this.getValues(match[i]);
