@@ -10,20 +10,6 @@ Please visit [http://clintjhill.github.com/Peggy.js/](http://clintjhill.github.c
 3. [Node.js Package Manager](http://npmjs.org/) 1.0.0 or greater
 4. jasmine-node `npm install -g jasmine-node`
 
-Roadmap
--------
-
-1. (Done) Finish API with Repeat, And, But etc. 
-2. (Done) Better parse exception handling on missed rule and/or tree inconsistencies.
-3. Full line/character error messages.
-4. Peggy grammar to allow for building rules with a Peggy syntax instead of the JavaScript API.
-5. (Done) More testing.
-6. (Done) More samples of both Peggy syntax and API.
-7. (Done) Fully embed string scanner (maybe even optimize for use case).
-8. Improve the value object that is returned to rule extensions.
-9. (Done) Improve example pages - construct a tutorial.
-10. (Done) Enhance rule API so that it includes: Zero or more, One or more, Optional, And predicate and Not predicate.
-
 ## License 
 
 (The MIT License)

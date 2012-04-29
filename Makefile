@@ -2,7 +2,7 @@ SRC_DIR = src
 TEST_DIR = specs
 LIBS_DIR = libs
 BUILD_DIR = build
-DIST_DIR = ./dist
+DIST_DIR = dist
 JS_ENGINE ?= `which node nodejs`
 UNIT ?= `which jasmine-node`
 COMPILER = ${JS_ENGINE} ${BUILD_DIR}/uglify.js --unsafe
@@ -18,7 +18,7 @@ VERSION = sed "s/@VERSION/${VER}/"
 REMOVE_DEBUGS = sed "/debugger;/d"
 
 #all: spec lint min
-all: lint min spec
+all: lint spec min
 
 ${DIST_DIR}: 
 	@@mkdir -p ${DIST_DIR}
@@ -38,7 +38,7 @@ lint: core
 spec: 
 	@@if test ! -z ${UNIT}; then \
 		echo "Running specs ..."; \
-		${UNIT} --color ${TEST_DIR}; \
+		${UNIT} --verbose --color ${TEST_DIR}; \
 	else \
 		echo "You must have Node.js and jasmine-node installed to run tests."; \
 	fi
@@ -55,3 +55,9 @@ min:
 clean: 
 	@@echo "Removing dist"
 	@@rm -rf ${DIST_DIR}
+
+#release: clean all
+#	git add dist/*
+#	git commit -a -m "release v${VERSION}"
+#	git tag -a -m "version v${VERSION}" v${VERSION}
+#	npm publish

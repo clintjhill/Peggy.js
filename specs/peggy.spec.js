@@ -6,9 +6,10 @@ var Peggy = require('../src/peggy.js').Peggy,
 	sequence, 
 	repeat, 
 	alias, 
-	choice;
+	choice,
+	not,
+	and;
 
-beforeEach(function(){
 	ruleBuilder = new Peggy("rule builder");
 	terminal = ruleBuilder.rule("terminal", /\w+/);
 	stringTerminal = ruleBuilder.rule("stringTerminal", "hello");
@@ -17,7 +18,8 @@ beforeEach(function(){
 	repeat = ruleBuilder.rule("repeat", ruleBuilder.repeat(":sequence", 1));
 	alias = ruleBuilder.rule("alias", ":repeat");
 	choice = ruleBuilder.rule("choice", ruleBuilder.choice(":alias", ":sequence"));
-});
+	not = ruleBuilder.rule("not", ruleBuilder.not(":alias"));
+	and = ruleBuilder.rule("and", ruleBuilder.and(":alias"));
 
 describe("Peggy instantiation", function(){
 	it("should throw on bad grammar name", function(){
@@ -81,20 +83,25 @@ describe("Peggy rule building", function(){
 		expect(root.root).toBeDefined();
 	});
 	
-	it("should build rules", function(){
-		var rule = ruleBuilder.rule("terminal", /\w+/);
+	it("should build rules with all proper attributes", function(){
+		var rule = ruleBuilder.rule("terminal", /\w+/, function(value){});
 		expect(rule.grammar).toEqual(ruleBuilder);
 		expect(rule.name).toEqual('terminal');
 		expect(rule.type).toEqual('terminal');
 		expect(rule.declaration).toEqual(/\w+/);
 		expect(rule.isTerminal).toBeTruthy();
-		expect(rule.extension).toBeUndefined();
+		expect(rule.extension).toBeDefined();
 	});
 
 	it("should set isTerminal properly", function(){
 		expect(terminal.isTerminal).toBeTruthy();
 		expect(stringTerminal.isTerminal).toBeTruthy();
 		expect(nonTerminal.isTerminal).toBeFalsy();
+		expect(sequence.isTerminal).toBeFalsy();
+		expect(choice.isTerminal).toBeFalsy();
+		expect(repeat.isTerminal).toBeFalsy();
+		expect(and.isTerminal).toBeFalsy();
+		expect(not.isTerminal).toBeFalsy();
 	});
 
 	it("should recognize rule type", function(){
@@ -104,6 +111,8 @@ describe("Peggy rule building", function(){
 		expect(repeat.type).toEqual('repeat');
 		expect(alias.type).toEqual('alias');
 		expect(choice.type).toEqual('choice');
+		expect(not.type).toEqual('not');
+		expect(and.type).toEqual('and');
 	});
 });
 

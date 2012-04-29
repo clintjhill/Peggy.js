@@ -42,33 +42,4 @@ describe("Engine RegExp handling", function(){
 	});
 });
 
-describe("Engine Terminal rules", function(){
-	var input = new Scanner("testing"),
-		tree = { count: 0, originalString: 'originalTest' },
-		rule = { type: 'terminal', declaration: /t/ };
 
-	it("should only add to tree if a match", function(){
-		var not = { type: 'stringTerminal', declaration: '+' };
-		Engine.terminal(not, input, tree);
-		expect(tree.count).toEqual(0);
-		expect(tree['0']).toBeUndefined();
-	});
-
-	it("should increment tree count on match", function(){
-		input.reset();
-		var t = Engine.terminal(rule, input, tree);
-		expect(t.count).toEqual(1);
-	});
-
-	it("should add a node to the tree on a match", function(){
-		input.reset();
-		var t = Engine.terminal(rule, input, tree);
-		expect(t['0']).toBeDefined();
-		expect(t['0'].rule).toEqual(rule);
-		expect(t['0'].string).toEqual('t');
-	});
-});
-
-describe("Engine Non-Terminal rules", function(){
-
-});

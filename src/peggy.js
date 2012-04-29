@@ -12,6 +12,9 @@
 			this.rules = {
 				count: 0
 			};
+			this.resolve = function(ruleName) {
+				return Peggy.resolveAlias(this, ruleName);
+			};
 			return this;
 		};
 
@@ -36,15 +39,10 @@
 		/*
 			Used to determine the 'type' of a rule by the contents of its 
 			declaration. This is useful when the declaration isn't wrapped in a standard
-			Rule model. Possible returns:
-
-			* terminal
-			* alias
-			* stringTerminal
-			* sequence
-			* choice
-			* repeat
-			* rule (in the event there is no need to translate)
+			Rule model. There are essentially 2 types of rules: terminal and non-temrinal.
+			Terminal rules will simply be a declaration (like regexp). Non-terminal rules are 
+			arrays of rules (both terminal and non-terminal). These non-terminal rule types
+			will be denoted by a 'type' property on the declaration.
 		*/
 		Peggy.ruleType = function(declaration) {
 			var type = Peggy.type(declaration);
@@ -53,6 +51,7 @@
 				if (declaration.charAt(0) === ':') return 'alias';
 				return 'stringTerminal';
 			}
+			// This is where choice, sequence, any, not, and, repeat come from
 			if (type === 'array') {
 				return declaration.type;
 			}
@@ -65,18 +64,106 @@
 			Builds a rule. This is the core building function in which the
 			declaration of the rule is translated to one of the rule types. 
 		*/
-		Peggy.buildRule = function(grammar, declaration, extension) {
+		Peggy.buildRule = function(grammar, declaration, extension, execute) {
 			var type = Peggy.ruleType(declaration);
 			if(type === 'rule') return declaration;
 			return {
 				grammar: grammar,
 				type: type,
 				declaration: declaration,
-				// extension is a function with a value param
 				extension: extension,
-				isTerminal: type === 'terminal' || type === 'stringTerminal'
+				isTerminal: type === 'terminal' || type === 'stringTerminal',
+				/* 
+					This allows for rules to be created with a standard 'execution'
+					function or be provided with a special function.
+				*/
+				execute: execute || Peggy.Executions[type]
 			};
 		};
+
+		Peggy.Executions = (function(){
+		
+			var terminal = function(input, tree) {
+				var regex = (this.type === 'stringTerminal') ? 
+							Peggy.Engine.safeRegExp(this.declaration) : 
+							this.declaration,
+					match = input.scan(regex);
+				if (match) {
+					// add a leaf to the tree
+					tree[tree.count] = { rule: this, string: match };
+					tree.count += 1;
+				}
+				return tree;
+			},
+			createBranch = function(rule) {
+				return { rule: rule, count: 0, string: '' };
+			},
+			updateTree = function(tree, branch) {
+				if(branch.count > 0){
+					for(var s = 0; s < branch.count; s++){
+						// check for a matching branch (some rules don't consume input)
+						if(branch[s]){
+							branch.string += branch[s].string;	
+						}						
+					}
+				}
+				tree[tree.count] = branch;
+				tree.count += 1;
+				return tree;
+			};
+
+			return {
+				terminal: terminal,
+				stringTerminal: terminal,
+				choice: function(input, tree) {
+					var i, branch = createBranch(this);
+					for (i = 0; i < this.declaration.length; i++) {
+						branch = Peggy.Engine.process(this.declaration[i], input, branch);
+						if(branch.count > 0) {
+							return updateTree(tree, branch);
+						}
+					}
+				},
+				sequence: function(input, tree) {
+					var i, branch = createBranch(this), branchCount, head = input.head, last = input.last;
+					for (i = 0; i < this.declaration.length; i++) {
+						branch = Peggy.Engine.process(this.declaration[i], input, branch);
+					}
+					if(branch.count === this.declaration.length){
+						return updateTree(tree, branch);
+					} else {
+						input.reset(head, last);
+					}
+				},
+				repeat: function(input, tree) {
+					var start = 0, end = this.max, branch = createBranch(this);
+					do{	
+						start = branch.count;
+						branch = Peggy.Engine.process(this.declaration, input, branch);
+						end -= 1;
+					} while(branch.count > start && end > 0);
+					if(branch.count >= this.min && branch.count <= this.max){
+						return updateTree(tree, branch);
+					}
+				},
+				not: function(input, tree) {
+					var branch = createBranch(this);
+					branch = Peggy.Engine.process(this.declaration, input, branch);
+					if(branch.count === 0){
+						tree.count += 1;
+						return tree;
+					}
+				},
+				and: function(input, tree) {
+					var branch = createBranch(this);
+					branch = Peggy.Engine.process(this.declaration, input, branch);					
+					if(branch.count > 0){
+						tree.count += 1;
+						return tree;
+					}
+				}
+			};
+		})();
 
 		/*
 			Returns the full Rule for the alias provided. Searches against
@@ -92,14 +179,7 @@
 		};
 
 		/*
-			Prototype for Peggy instances that includes the API to build 
-			a Grammar:
-
-			* root()
-			* rule()
-			* repeat()
-			* sequence()
-			* choice()
+			Prototype for Peggy instances that includes the API to build a Grammar.
 		*/
 		Peggy.prototype = {
 
@@ -128,6 +208,43 @@
 				return rule;
 			},
 
+			sequence: function(/* declaration */) {
+				var rule = this.nonTerminal(arguments);
+				rule.type = 'sequence';
+				return rule;
+			},
+
+			choice: function(/* declaration */) {
+				var rule = this.nonTerminal(arguments);
+				rule.type = 'choice';
+				return rule;
+			},
+
+			repeat: function(declaration, mn, mx) {
+				var rule, min = mn || 1, max = mx || 1.0/0;
+				rule = Peggy.buildRule(this, declaration, null, Peggy.Executions.repeat);
+				rule.type = 'repeat';
+				// TODO: This is pretty wonky. It's in and & not rules also
+				rule.declaration = Peggy.buildRule(this, declaration);
+				rule.min = min;
+				rule.max = max;
+				return rule;
+			},
+
+			and: function(declaration) {
+				var rule = Peggy.buildRule(this, declaration, null, Peggy.Executions.and);
+				rule.type = 'and';
+				rule.declaration = Peggy.buildRule(this, declaration);
+				return rule;
+			},
+
+			not: function(declaration) {
+				var rule = Peggy.buildRule(this, declaration, null, Peggy.Executions.not);
+				rule.type = 'not';
+				rule.declaration = Peggy.buildRule(this, declaration);				
+				return rule;
+			},
+
 			/*
 				Returns an array that is considered a NonTerminal.
 				It is a collection of rules each built by the #buildRule function.
@@ -138,32 +255,6 @@
 					rules.push(Peggy.buildRule(this, declarations[i]));
 				}
 				return rules;
-			},
-
-			/*
-				Builds a Repeat rule. Defaults min to 1 and max to Infinity. 
-			*/
-			repeat: function(name, rule, min, max, extension) {
-				return {
-					name: name,
-					declaration: Peggy.buildRule(this, rule),
-					min: min || 1,
-					max: max || 1.0 / 0,
-					extension: extension,
-					type: 'repeat'
-				};
-			},
-
-			oneOrMore: function(name, rule, extension) {
-				return this.repeat(name, rule, null, null, extension);
-			},
-
-			zeroOrMore: function(name, rule, extension) {
-				return this.repeat(name, rule, 0, null, extension);
-			},
-
-			zeroOrOne: function(name, rule, extension) {
-				return this.repeat(name, rule, 0, 1, extension);
 			},
 
 			/*
@@ -191,59 +282,47 @@
 		};
 
 		/*
-			Collection of NonTerminal types for the prototype API
+			StringScanner object. Politely stolen from http://sstephenson.github.com/strscan-js/.
+			Features removed for size shrinking considerations, but features added for grammar
+			purposes. 
 		*/
-		Peggy.nonTerminals = "sequence choice any all".split(" ");
-
-		/*
-			Constructs a function for a NonTerminal API 
-		*/
-		var nonTerminalFunction = function(func) {
-			return function() {
-				var rules = this.nonTerminal(arguments);
-				rules.type = func;
-				return rules;
-			};
-		};
-
-		// Iterate NonTerminal types and add them to the Peggy.prototype
-		for (var i = 0; i < Peggy.nonTerminals.length; i++) {
-			var type = Peggy.nonTerminals[i];
-			Peggy.prototype[type] = nonTerminalFunction(type);
-		}
-
 		Peggy.StringScanner = function(source) {
 			this.source = source.toString();
 			this.reset();
 			return this;
 		};
-		
-		Peggy.StringScanner.prototype.scan = function(regexp) {
-			var matches = regexp.exec(this.getRemainder());
-			return (matches && matches.index === 0) ? this.setState(matches, { head: this.head + matches[0].length, last: this.head }) : this.setState([]);
-		};
-		
-		Peggy.StringScanner.prototype.getRemainder = function() {
-			return this.source.slice(this.head);
-		};
-		
-		Peggy.StringScanner.prototype.setState = function(matches, values) {
-			var _a, _b;
-			this.head = (typeof(_a = ((typeof values === "undefined" || values === null) ? undefined: values.head)) !== "undefined" && _a !== null) ? _a: this.head;
-			this.last = (typeof(_b = ((typeof values === "undefined" || values === null) ? undefined: values.last)) !== "undefined" && _b !== null) ? _b: this.last;
-			this.captures = matches.slice(1);
-			return (this.match = matches[0]);
-		};
-		
-		Peggy.StringScanner.prototype.getSource = function() {
-			return this.source;
-		};
 
-		Peggy.StringScanner.prototype.reset = function() {
-		  return this.setState([], {
-			head: 0,
-			last: 0
-		  });
+		Peggy.StringScanner.prototype = {
+
+			scan: function(regexp) {
+				var matches = regexp.exec(this.getRemainder());
+				return (matches && matches.index === 0) ? this.setState(matches, { head: this.head + matches[0].length, last: this.head }) : this.setState([]);
+			},
+			
+			test: function(regexp) {
+				var matches = regexp.exec(this.getRemainder());
+				return (matches && matches.index === 0);
+			},
+
+			getRemainder:  function() {
+				return this.source.slice(this.head);
+			},
+
+			setState:  function(matches, values) {
+				var _a, _b;
+				this.head = (typeof(_a = ((typeof values === "undefined" || values === null) ? undefined : values.head)) !== "undefined" && _a !== null) ? _a: this.head;
+				this.last = (typeof(_b = ((typeof values === "undefined" || values === null) ? undefined: values.last)) !== "undefined" && _b !== null) ? _b: this.last;
+				this.captures = matches.slice(1);
+				return (this.match = matches[0]);
+			},
+			
+			getSource:  function() {
+				return this.source;
+			},
+
+			reset:  function(head, last) {
+				return this.setState([], { head: head || 0, last: last || 0 });
+			}
 		};
 
 		/*
@@ -296,96 +375,10 @@
 				}
 			},
 
-			/* 
-				Returns the tree parameter with the addition of 
-				any matched content. This addition is a leaf to the tree.
-			*/
-			terminal: function(rule, input, tree) {
-				
-				if(rule.debugEngine) { debugger; }
-
-				var regex = (rule.type === 'stringTerminal') ? this.safeRegExp(rule.declaration) : rule.declaration,
-					match = input.scan(regex);
-				
-				if (match) {
-					// add a leaf to the tree
-					tree[tree.count] = { rule: rule, string: match };
-					tree.count += 1;
-				}
-				return tree;
-			},
-
-			/*
-				Returns the tree parameter with the addition of
-				any matched content. This addition is a branch to the tree.
-			*/
-			nonTerminal: function(rule, input, tree) {
-				
-				if(rule.debugEngine) { debugger; }
-
-				var
-					// set the branch with the rule it supports 
-					branch = { rule: rule, count: 0, string: '' },
-					// guard for match count before repeat rule processing
-					originalCount = 0,
-					// iterator for declarations
-					i, 
-					// iterator for string concat on branch
-					s, 
-					// helper to add branch to return tree
-					addToTree = function(sub){
-						tree[tree.count] = sub;
-						tree.count += 1;
-					};
-
-				if(Peggy.type(rule.declaration) === 'array') {
-					for (i = 0; i < rule.declaration.length; i++) {
-						branch = this.process(rule.declaration[i], input, branch);
-					}	
-				} else if(rule.type === 'repeat') {
-					do{	
-						originalCount += branch.count;
-						branch = this.process(rule.declaration, input, branch);
-					} while(branch.count > originalCount);
-				}
-
-				// if there are matches we need to aggregate the 
-				// strings from all sub-matches to the root match
-				if(branch.count > 0){
-					for(s = 0; s < branch.count; s++){
-						branch.string += branch[s].string;
-					}
-				}
-
-				if(rule.type === 'sequence' || rule.type === 'any'){
-					if(branch.count > 0){
-						addToTree(branch);
-					}
-				} else if(rule.type === 'all'){
-					if(branch.count === rule.declaration.length){
-						addToTree(branch);
-					}
-				} else if(rule.type === 'choice'){
-					if(branch.count === 1){
-						addToTree(branch);
-					}
-				} else if(rule.type === 'repeat'){
-					if(branch.count >= rule.min && branch.count <= rule.max){
-						addToTree(branch);
-					}
-				}
-
-				return tree;
-			},
-
 			process: function(rule, input, tree) {
 				rule = this.resolve(rule);
 				tree = this.defaultTree(input, tree);
-				if (rule.isTerminal) {
-					return this.terminal(rule, input, tree);
-				} else {
-					return this.nonTerminal(rule, input, tree);
-				}
+				return rule.execute(input, tree);
 			}
 		};
 
