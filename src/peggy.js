@@ -378,6 +378,7 @@
 			process: function(rule, input, tree) {
 				rule = this.resolve(rule);
 				tree = this.defaultTree(input, tree);
+				if(rule.debugEngine) { debugger; }
 				return rule.execute(input, tree);
 			}
 		};

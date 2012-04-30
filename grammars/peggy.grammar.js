@@ -105,4 +105,3 @@ peggy.rule('comma', peggy.sequence(':space', ',', ':space'), function(value){
 peggy.rule('space', /\s+/, function(value) {
 	return value;
 });
-
