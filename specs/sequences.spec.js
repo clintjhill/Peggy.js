@@ -15,11 +15,11 @@ describe("Sequence rules", function(){
 			t = Engine.process(rule, input);
 		expect(t['0']).toBeDefined();
 		expect(t['0'].count).toEqual(5);
-		expect(t['0']['0'].string).toEqual('t');
-		expect(t['0']['1'].string).toEqual('e');
-		expect(t['0']['2'].string).toEqual('st');
-		expect(t['0']['3'].string).toEqual('i');
-		expect(t['0']['4'].string).toEqual('ng');
+		expect(t['0']['0'].match).toEqual('t');
+		expect(t['0']['1'].match).toEqual('e');
+		expect(t['0']['2'].match).toEqual('st');
+		expect(t['0']['3'].match).toEqual('i');
+		expect(t['0']['4'].match).toEqual('ng');
 	});
 
 	it("should return nothing when sequence is not completely matched", function(){

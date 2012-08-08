@@ -15,7 +15,7 @@ describe("Choice rules", function(){
 			t = Engine.process(rule, input);
 		expect(t['0']).toBeDefined();
 		expect(t['0'].count).toEqual(1);
-		expect(t['0']['0'].string).toEqual('t');
+		expect(t['0']['0'].match).toEqual('t');
 	});
 
 	it("should leave input unconsumed on failure", function(){

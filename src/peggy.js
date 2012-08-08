@@ -90,24 +90,30 @@
 					match = input.scan(regex);
 				if (match) {
 					// add a leaf to the tree
-					tree[tree.count] = { rule: this, string: match };
+					tree[tree.count] = { rule: this, match: match };
 					tree.count += 1;
 				}
 				return tree;
 			},
 			createBranch = function(rule) {
-				return { rule: rule, count: 0, string: '' };
+				return { rule: rule, count: 0, match: '' };
 			},
-			updateTree = function(tree, branch) {
+			updateTree = function(tree, branch, elided) {
 				if(branch.count > 0){
 					for(var s = 0; s < branch.count; s++){
 						// check for a matching branch (some rules don't consume input)
-						if(branch[s]){
-							branch.string += branch[s].string;	
-						}						
+						if(branch[s] && !branch[s].elided){
+							branch.match += branch[s].match;
+						}
 					}
 				}
-				tree[tree.count] = branch;
+				// if the rule execution wants to block the match from showing
+				// up later in a Match, let's add a flag to the tree.
+				if(elided){
+					tree[tree.count] = { rule: branch.rule, elided: true };
+				} else {
+					tree[tree.count] = branch;
+				}
 				tree.count += 1;
 				return tree;
 			};
@@ -119,17 +125,17 @@
 					var i, branch = createBranch(this);
 					for (i = 0; i < this.declaration.length; i++) {
 						branch = Peggy.Engine.process(this.declaration[i], input, branch);
-						if(branch.count > 0) {
+						if(branch && branch.count > 0) {
 							return updateTree(tree, branch);
 						}
 					}
 				},
 				sequence: function(input, tree) {
-					var i, branch = createBranch(this), branchCount, head = input.head, last = input.last;
+					var i, branch = createBranch(this), head = input.head, last = input.last;
 					for (i = 0; i < this.declaration.length; i++) {
 						branch = Peggy.Engine.process(this.declaration[i], input, branch);
 					}
-					if(branch.count === this.declaration.length){
+					if(branch && branch.count === this.declaration.length){
 						return updateTree(tree, branch);
 					} else {
 						input.reset(head, last);
@@ -141,25 +147,23 @@
 						start = branch.count;
 						branch = Peggy.Engine.process(this.declaration, input, branch);
 						end -= 1;
-					} while(branch.count > start && end > 0);
-					if(branch.count >= this.min && branch.count <= this.max){
+					} while(branch && branch.count > start && end > 0);
+					if(branch && branch.count >= this.min && branch.count <= this.max){
 						return updateTree(tree, branch);
 					}
 				},
 				not: function(input, tree) {
 					var branch = createBranch(this);
 					branch = Peggy.Engine.process(this.declaration, input, branch);
-					if(branch.count === 0){
-						tree.count += 1;
-						return tree;
+					if(branch && branch.count === 0){
+						return updateTree(tree, branch, true);
 					}
 				},
 				and: function(input, tree) {
 					var branch = createBranch(this);
-					branch = Peggy.Engine.process(this.declaration, input, branch);					
-					if(branch.count > 0){
-						tree.count += 1;
-						return tree;
+					branch = Peggy.Engine.process(this.declaration, input, branch);
+					if(branch && branch.count > 0){
+						return updateTree(tree, branch, true);
 					}
 				}
 			};
@@ -241,7 +245,7 @@
 			not: function(declaration) {
 				var rule = Peggy.buildRule(this, declaration, null, Peggy.Executions.not);
 				rule.type = 'not';
-				rule.declaration = Peggy.buildRule(this, declaration);				
+				rule.declaration = Peggy.buildRule(this, declaration);
 				return rule;
 			},
 
@@ -389,7 +393,7 @@
 			Peggy.prototype.parse.
 		*/
 		Peggy.Match = function(tree) {
-			if (typeof tree === 'undefined') throw 'Tree must be defined for Match';
+			if (typeof tree === 'undefined') throw 'Tree must be defined for Match.';
 			if (tree.count === 0) throw 'Failed to parse "' + tree.originalString + '"';
 			this.tree = tree;
 			this.captures = {};
@@ -434,7 +438,7 @@
 				// it's likely the root and safe to skip.
 				// TODO: Better check - check for root?
 				if (match.rule) {
-					c = { match: match.string, value: this.getValues(match) };
+					c = { match: match.match, value: this.getValues(match) };
 					this.safeCollect(this.captures, match.rule.name || this.captureId, c);
 					this.captureId += 1;
 				}
@@ -457,7 +461,7 @@
 				// Terminals are easy - return the extension or the string as the value
 				if (match.rule.isTerminal) {
 					if(match.rule.debugMatch) { debugger; }
-					return (match.rule.extension)  ? match.rule.extension(match.string)  : match.string;
+					return (match.rule.extension)  ? match.rule.extension(match.match)  : match.match;
 				} else {
 				// NonTerminals are harder
 					for (i = 0; i < match.count; i++) {

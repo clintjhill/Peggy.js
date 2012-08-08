@@ -3,23 +3,23 @@ var Match = require('../src/peggy.js').Peggy.Match,
 		originalString: 'test',
 		count: 1,
 		'0': {
-			string: 'test',
+			match: 'test',
 			rule: { name: 'testRule', isTerminal: false },
 			count: 4,
 			'0': {
-				string: 't',
+				match: 't',
 				rule: { isTerminal: true }
 			},
 			'1': {
-				string: 'e',
+				match: 'e',
 				rule: { isTerminal: true }
 			},
 			'2': {
-				string: 's',
+				match: 's',
 				rule: { isTerminal: true }
 			},
 			'3': {
-				string: 't',
+				match: 't',
 				rule: { isTerminal: true }
 			}
 		}
@@ -30,7 +30,7 @@ describe("Match instantiation", function(){
 	it("should throw on undefined tree", function(){
 		expect(function() {
 			var m = new Match(); 
-		}).toThrow('Tree must be defined for Match');
+		}).toThrow('Tree must be defined for Match.');
 	});
 	
 	it("should throw when tree has no count", function(){

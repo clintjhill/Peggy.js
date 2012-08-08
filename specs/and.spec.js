@@ -17,6 +17,6 @@ describe("And rules", function(){
 		// there should be 2 matches
 		expect(t['0'].count).toEqual(2);
 		// but the string should only be for the non-ander.
-		expect(t['0'].string).toEqual('test');
+		expect(t['0'].match).toEqual('test');
 	});
 });

@@ -16,7 +16,7 @@ describe("Repeat rules", function(){
 		expect(t).toBeDefined();
 		expect(t['0']).toBeDefined();
 		expect(t['0'].count).toEqual(5);
-		expect(t['0'].string).toEqual("testi");
+		expect(t['0'].match).toEqual("testi");
 	});
 
 	it("should not be infinite loop", function(){
@@ -24,6 +24,6 @@ describe("Repeat rules", function(){
 			t = Engine.process(rule, input);
 		expect(t).toBeDefined();
 		expect(t['0'].count).toEqual(7);
-		expect(t['0'].string).toEqual('testing');
+		expect(t['0'].match).toEqual('testing');
 	});
 });
