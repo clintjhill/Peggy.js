@@ -1,4 +1,4 @@
-var Scanner = require('../src/peggy.js').Peggy.StringScanner;
+var Scanner = Peggy.StringScanner;
 
 describe("StringScanner", function(){
 	it("should perform stateless tests", function(){

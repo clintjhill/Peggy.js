@@ -1,5 +1,4 @@
-var Peggy = require('../src/peggy.js').Peggy,
-	Scanner = Peggy.StringScanner,
+var Scanner = Peggy.StringScanner,
 	Engine = Peggy.Engine;
 
 describe("Choice rules", function(){

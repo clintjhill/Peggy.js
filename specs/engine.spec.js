@@ -1,5 +1,4 @@
-var Peggy = require('../src/peggy.js').Peggy,
-	Engine = Peggy.Engine,
+var Engine = Peggy.Engine,
 	Scanner = Peggy.StringScanner;
 
 describe("Engine rule resolving", function(){
@@ -30,7 +29,7 @@ describe("Engine tree defaulting", function(){
 	});
 	
 });
-
+/*
 describe("Engine RegExp handling", function(){
 	//TODO: Not sure if this is the best way to test for regexp
 	it("should handle reserved RegExp characters", function(){
@@ -40,6 +39,6 @@ describe("Engine RegExp handling", function(){
 	it("should handle RegExp as strings", function(){
 		expect(Engine.safeRegExp("/(\\w+)/").toString()).toEqual("/(\\w+)/");
 	});
-});
+});*/
 
 

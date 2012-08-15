@@ -1,5 +1,4 @@
-var Peggy = require('../src/peggy.js').Peggy,
-	ruleBuilder, 
+var ruleBuilder, 
 	terminal, 
 	stringTerminal, 
 	nonTerminal,

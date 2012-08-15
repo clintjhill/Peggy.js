@@ -1,5 +1,4 @@
-var Peggy = require('../src/peggy.js').Peggy,
-	Scanner = Peggy.StringScanner,
+var Scanner = Peggy.StringScanner,
 	Engine = Peggy.Engine;
 
 describe("Repeat rules", function(){		
@@ -14,16 +13,13 @@ describe("Repeat rules", function(){
 		var rule = grammar.rule("repeat", grammar.repeat(/\w/, 1, 5)),
 			t = Engine.process(rule, input);
 		expect(t).toBeDefined();
-		expect(t['0']).toBeDefined();
-		expect(t['0'].count).toEqual(5);
-		expect(t['0'].match).toEqual("testi");
+		expect(t.count).toEqual(5);
 	});
 
 	it("should not be infinite loop", function(){
-		var rule = grammar.rule('infinite', grammar.repeat(/./)),
+		var rule = grammar.rule('infinite', grammar.repeat(/\w/)),
 			t = Engine.process(rule, input);
 		expect(t).toBeDefined();
-		expect(t['0'].count).toEqual(7);
-		expect(t['0'].match).toEqual('testing');
+		expect(t.count).toEqual(7);
 	});
 });
