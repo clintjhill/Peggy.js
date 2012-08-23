@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/clintjhill/Peggy.js.png)](http://travis-ci.org/clintjhill/Peggy.js)
 Peggy.js - A simpler PEG generator in JavaScript
 ======================================
 ## Description
