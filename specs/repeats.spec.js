@@ -10,14 +10,14 @@ describe("Repeat rules", function(){
 	});
 
 	it("should return on proper matches (min/max)", function(){
-		var rule = grammar.rule("repeat", grammar.repeat(/\w/, 1, 5)),
+		var rule = grammar.rule("repeat", grammar.repeat("oneToFive", /\w/, 1, 5)),
 			t = Engine.process(rule, input);
 		expect(t).toBeDefined();
 		expect(t.count).toEqual(5);
 	});
 
 	it("should not be infinite loop", function(){
-		var rule = grammar.rule('infinite', grammar.repeat(/\w/)),
+		var rule = grammar.rule('infinite', grammar.repeat("all", /\w/)),
 			t = Engine.process(rule, input);
 		expect(t).toBeDefined();
 		expect(t.count).toEqual(7);

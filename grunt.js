@@ -17,7 +17,7 @@ module.exports = function(grunt){
 		},
 		concat: {
 			hitch: {
-				src: ["src/peggy.js", "src/peggy.prototype.js", "src/executions.js", "src/engine.js", "src/scanner.js", "src/match.js"],
+				src: ["src/peggy.js", "src/peggy.prototype.js", "src/engine.js", "src/executions.js", "src/scanner.js", "src/match.js"],
 				dest: "dist/<%=pkg.name%>-<%=pkg.version%>.js"
 			}
 		},
@@ -33,6 +33,6 @@ module.exports = function(grunt){
 		}
 	});
 
-	grunt.registerTask("default", "lint concat min");
+	grunt.registerTask("default", "lint concat min jasmine");
 	
 };

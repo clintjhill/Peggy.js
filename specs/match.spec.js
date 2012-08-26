@@ -1,26 +1,27 @@
 var Match = Peggy.Match,
+	grammar = { instrument: false },
 	testTree = {
-		originalString: 'test',
+		original: 'test',
 		count: 1,
 		'0': {
 			match: 'test',
-			rule: { name: 'testRule', isTerminal: false },
+			rule: { name: 'testRule', isTerminal: false, grammar: grammar},
 			count: 4,
 			'0': {
 				match: 't',
-				rule: { isTerminal: true }
+				rule: { isTerminal: true, grammar: grammar }
 			},
 			'1': {
 				match: 'e',
-				rule: { isTerminal: true }
+				rule: { isTerminal: true, grammar: grammar }
 			},
 			'2': {
 				match: 's',
-				rule: { isTerminal: true }
+				rule: { isTerminal: true, grammar: grammar }
 			},
 			'3': {
 				match: 't',
-				rule: { isTerminal: true }
+				rule: { isTerminal: true, grammar: grammar }
 			}
 		}
 	};
@@ -31,18 +32,6 @@ describe("Match instantiation", function(){
 		expect(function() {
 			var m = new Match(); 
 		}).toThrow('Tree must be defined for Match to capture against.');
-	});
-	
-});
-
-describe("Match safeCollect", function(){
-	var mSC = new Match({originalString: 'test', count: 1}),
-		collection = {};
-	
-	it("should add to collection when key is missing", function(){
-		expect(collection['emptyTest']).toBeUndefined();
-		mSC.safeCollect(collection, 'emptyTest', 1);
-		expect(collection['emptyTest']).toEqual(1);
 	});
 	
 });

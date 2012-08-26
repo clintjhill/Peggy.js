@@ -1,47 +1,62 @@
-var css = new Peggy("CSS"), instrument = true;
-css.root("sheet", css.repeat(":rule"), function(value){
-	console.log('css#sheet', value);
-	return value; 
-}, instrument);
+var css = new Peggy("CSS");
 
-css.rule("rule", css.sequence(":ruleName", ":ruleStart", ":ruleBody", ":ruleEnd"), function(value){
-	console.log('css#rule', value);
-	return {name: value.ruleName, body: value.ruleBody};
-}, instrument);
+css.root("sheet", css.any(css.repeat("rules", ":rule"), css.repeat("media", ":media")), 
+	function(value){
+		if(!this.rules) this.rules = [];
+		if(!this.media) this.media = [];
+		if(value.rules){
+			this.rules = this.rules.concat(value.rules);
+		}
+		if(value.media){
+			this.media = this.media.concat(value.media);
+		}
+		return this;
+	}, 
+	function(value){
+		return { rules: this.rules, media: this.media };
+	}, true);
 
-css.rule("ruleName", /\w+/, function(value) {
-	console.log('css#ruleName', value); 
-	return value; 
-}, instrument);
+// MEDIA
+css.rule("media", css.sequence(/@media/, css.zeroOrMore(":ws"), ":ruleName", ":open", css.repeat("rules", ":rule"), ":close"), function(value){
+	return {types: value.ruleName, rules: value.rules};
+});
 
-css.rule("ruleStart", /\{/, function(value){
-	console.log('css#ruleStart');
-}, instrument);
+// RULES
+css.rule("rule", css.sequence(":ruleName", ":open", ":ruleBody", ":close"), function(value){
+	return {selector: value.ruleName, properties: value.ruleBody};
+});
 
-css.rule("ruleBody", css.repeat(":property"), function(value) { 
-	console.log('css#ruleBody');
-	return value; 
-}, instrument);
+css.rule("ruleName", css.any(/\w+/, ":ws"), function(value) {
+	console.log('ruleName', value);
+	return value[0]; 
+});
 
-css.rule("ruleEnd", css.sequence(/\}/, /\s+/), function(value){
-	console.log('css#ruleEnd');
-}, instrument);
+css.rule("ruleBody", css.repeat("properties", ":property"), function(value) { 
+	return value.property; 
+});
 
-css.rule("property", css.sequence(":propertyName", ":propertyAssignment", ":propertyValue"), function(value){
-	console.log('css#property', value.propertyName, value.propertyValue);
-	return {name: value.propertyName, value: value.propertyValue}; 
-}, instrument);
+// PROPERTIES
+css.rule("property", css.sequence(":propertyName", ":propertyValue"), function(value){
+	console.log('property', value);
+	var name = value.propertyName,
+		val = value.propertyValue,
+		result = {};
+	result[name] = val;
+	return result; 
+});
 
-css.rule("propertyName", css.sequence(/\s+/, /\w+/), function(value){
-	console.log('css#propertyName', value[1]);
-	return value[1];
-}, instrument);
-
-css.rule("propertyAssignment", css.sequence(/:/, /\s+/), function(value){
-	console.log('css#propertyAssignment', value[0]);
-}, instrument);
-
-css.rule("propertyValue", css.sequence(/\w+/, /;\s+/), function(value){
-	console.log('css#propertyValue', value[0]);
+css.rule("propertyName", css.sequence(/\w+/, ":", ":ws"), function(value){
+	console.log('propertyName', value);
 	return value[0];
-}, instrument);
+});
+
+css.rule("propertyValue", css.sequence(/\w+/, ";"), function(value){
+	console.log('propertyValue', value);
+	return value[0];
+});
+
+css.rule("comment", css.sequence(/\/*/, /[^*\/]/, "*/"));
+
+css.rule("open", css.any(/\{/, ":ws"), function(value) { console.log('open', value); });
+css.rule("close", css.any(":ws", /\}/, ":ws"), function(value) { console.log('close', value); });
+css.rule("ws", /\s*/);

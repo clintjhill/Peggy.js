@@ -77,7 +77,7 @@ describe("Peggy rule building", function(){
 
 	it("should provide a 'root' declaration", function(){
 		var root = new Peggy("root test");
-		root.root('test');
+		root.root('test', /./);
 		expect(root.rules['root']).toBeDefined();
 		expect(root.root).toBeDefined();
 	});

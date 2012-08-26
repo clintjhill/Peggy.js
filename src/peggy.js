@@ -48,7 +48,7 @@
 			var type = Peggy.type(declaration);
 			if (type === 'regexp') return 'terminal';
 			if (type === 'string') {
-				if (declaration.charAt(0) === ':') return 'alias';
+				if (declaration.charAt(0) === ':' && declaration.length > 1) return 'alias';
 				return 'stringTerminal';
 			}
 			// This is where choice, sequence, any, not, and, repeat come from
@@ -63,25 +63,56 @@
 		/*
 			Builds a rule. This is the core building function in which the
 			declaration of the rule is translated to one of the rule types. 
+			This does not add anything to the grammar rather is a constructor
+			for a rule.
 		*/
 		Peggy.buildRule = function(grammar, declaration, extension, execute) {
-			var type = Peggy.ruleType(declaration);
-			if(type === 'rule') {
+			// if this declaration is already a rule don't rebuild it but override ext and exec
+			if(Peggy.isRule(declaration)) {
 				if(extension) declaration.extension = extension;
+				if(execute) declaration.execute = execute;
 				return declaration;
 			}
+				
+			// determine the type of rule we'll build based on kind of declaration
+			var type = Peggy.ruleType(declaration);
 			return {
 				grammar: grammar,
 				type: type,
 				declaration: declaration,
-				extension: extension,
 				isTerminal: type === 'terminal' || type === 'stringTerminal',
+				/*
+					this is a function that will be called to evaluate the value found
+					from a parse.
+				*/
+				extension: extension,
 				/* 
 					This allows for rules to be created with a standard 'execution'
 					function or be provided with a special function.
 				*/
-				execute: execute || Peggy.Executions[type]
+				execute: execute || Peggy.Executions[type],
+				/*
+					A special bucket for the rule to keep info in. Useable 
+					during the parsing/matching process.
+				*/
+				scope: {}
 			};
+		};
+
+		// Quick list of Peggy Rule types (not the same as Peggy types)
+		var ruleTypes = "sequence choice any repeat and not".split(" ");
+
+		/*
+			Returns true if declaration has a type and it matches one of
+			the Peggy rule types. False otherwise.
+		*/
+		Peggy.isRule = function(declaration){
+			if(!declaration.type) return false;
+			var l = ruleTypes.length;
+			while(l--){
+				if(ruleTypes[l] === declaration.type) return true;
+			}
+			return false;
 		};
 
 		/*

@@ -33,7 +33,9 @@ Peggy.Match.prototype = {
 			i,
 			// rule placeholder in matches loop
 			rule,
+			// name of the value inside the NonTerminals loop
 			valueName,
+			// extended value inside the NonTerminals loop
 			valueExtended;
 
 		// Terminals are easy - return the extended value
@@ -46,35 +48,33 @@ Peggy.Match.prototype = {
 				rule = tree[i].rule;
 				// if this tree rule is Terminal - recurse for values
 				if (rule.isTerminal) {
+					if(rule.grammar.instrument) console.log('match#getValues(terminal)', rule.name || i);
 					values[rule.name || i] = this.getValues(tree[i]);
 				} else {
 					valueName = rule.name || this.captureId++;
+					if(rule.grammar.instrument) console.log('match#getValues(nonTerminal)', rule.name);
 					value = this.getValues(tree[i]);
 					valueExtended = this.extendValue(rule, value);
-					this.safeCollect(values, valueName, valueExtended);
+					if(rule.type === 'repeat'){
+						if(!values[valueName]) values[valueName] = [];
+						values[valueName].push(valueExtended);
+					} else {
+						values[valueName] = valueExtended;	
+					}
 				}
 			}
+			if(rule.grammar.instrument) console.log('match#getValues ->', values);
 			return values;
 		}
 	},
 
 	extendValue: function(rule, value){
-		return (rule.extension) ? rule.extension(value) : value;
-	},
-
-	/*
-		Helper function to add an object to another object while preventing
-		overwrites. If key exists it will safely create an array for the key so all
-		values are preserved.
-	*/
-	safeCollect: function(collector, key, value) {
-		if (collector[key]) {
-			if (Peggy.types[toString.call(collector[key])] !== 'array') {
-				collector[key] = [collector[key]];						
-			}
-			collector[key].push(value);
+		if(rule.extension){
+			if(rule.grammar.instrument) console.log('match#extendValue - extension', rule, value);
+			return rule.extension.call(rule.scope, value);
 		} else {
-			collector[key] = value;
+			if(rule.grammar.instrument) console.log('match#extendValue - return', rule, value);
+			return value;
 		}
 	},
 
