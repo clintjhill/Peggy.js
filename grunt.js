@@ -16,15 +16,23 @@ module.exports = function(grunt){
 			}
 		},
 		concat: {
-			core: {
+			full: {
 				src: ["lib/underscore-1.3.3/underscore.js", "src/peggy.js", "src/scanner.js"],
 				dest: "dist/<%=pkg.name%>-<%=pkg.version%>.js"
+			},
+			no_underscore: {
+				src: ["src/peggy.js", "src/scanner.js"],
+				dest: "dist/<%=pkg.name%>-<%=pkg.version%>-only-peggy.js"
 			}
 		},
 		min: {
-			core: {
+			full: {
 				src: ["<banner>", "dist/<%=pkg.name%>-<%=pkg.version%>.js"],
 				dest: "dist/<%=pkg.name%>-<%=pkg.version%>.min.js"
+			},
+			no_underscore: {
+				src: ["<banner>", "dist/<%=pkg.name%>-<%=pkg.version%>-only-peggy.js"],
+				dest: "dist/<%=pkg.name%>-<%=pkg.version%>-only-peggy.min.js"
 			}
 		},
 		qunit: {
