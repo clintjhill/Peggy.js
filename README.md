@@ -1,4 +1,4 @@
-Peggy.js - A simpler PEG generator in JavaScript
+Peggy.js - A simpler PEG in JavaScript
 ======================================
 ## Description
 Please visit [http://clintjhill.github.com/Peggy.js/](http://clintjhill.github.com/Peggy.js/) for more information.
