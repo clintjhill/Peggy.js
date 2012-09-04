@@ -13,7 +13,7 @@ Please visit [http://clintjhill.github.com/Peggy.js/](http://clintjhill.github.c
 - optional (0 or 1)	["?", val]
 - and 				["&", val]
 - not 				["!", val]
-	
+```javascript	
 	var css = new Peggy({
 		"sheet": ["rules", "medias", "imports"],
 		"rules": ["+", "rule"],
@@ -51,7 +51,7 @@ Please visit [http://clintjhill.github.com/Peggy.js/](http://clintjhill.github.c
 
 		}
 	});
-
+```
 ## License 
 
 (The MIT License)
