@@ -24,13 +24,16 @@ var css = new Peggy(
 	},
 	{
 		"sheet": function(rules, medias, imports){
-
+			console.log('sheet', rules, medias, imports);
 		},
 		"rules": function(rule){
 
 		},
 		"rule": function(ruleName, openBracket, ruleBody, closeBracket){
 
+		},
+		"ruleName": function(name, nested){
+			console.log('ruleName', name, nested);
 		},
 		"property": function(propertyName, propertyValue){
 

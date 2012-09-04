@@ -51,7 +51,7 @@
 		},
 		resolve: function(name){
 			if(_.isArray(name)){
-				return { name: 'NEED', decl: name, type: getType(name) };
+				return { name: 'nested', decl: name, type: getType(name) };
 			} else {
 				return _.find(this.rules, function(rule){ return rule.name === name; });
 			}
@@ -66,19 +66,20 @@
 	};
 
 	var setCurrent = function(rule, tree){
-		var current = rule.name || rule;
-		if(!tree[current]) tree[current] = {};
-		return tree[current];
+		this.current = rule.name || rule;
+		if(!tree[this.current]) tree[this.current] = {};
+		this.currentNode = tree;
+		return tree[this.current];
 	};
 
 	var addToTree = function(match, tree){
-		if(tree[this.name]){
-			if(!_.isArray(tree[this.name])){
-				tree[this.name] = [tree[this.name]];
-			}
-			tree[this.name].push(match);
+		if(_.isObject(this.node[this.name]) && _.isEmpty(this.node[this.name])){
+			this.node[this.name] = match;
 		} else {
-			tree[this.name] = match;
+			if(!_.isArray(this.node[this.name])){
+				this.node[this.name] = [this.node[this.name]];
+			}
+			this.node[this.name].push(match);
 		}
 	};
 
@@ -102,7 +103,7 @@
 		},
 		// terminal
 		".": function(r, t){
-			var context = {};
+			var context = {node: this.currentNode};
 			// sometimes we get full rules - we just want regexp
 			if(!_.isRegExp(r)){
 				context.name = r.name;
