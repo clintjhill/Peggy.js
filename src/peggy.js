@@ -1,133 +1,161 @@
-(function() {
-	var Peggy;
-	((typeof exports !== "undefined" && exports !== null) ? exports : this).Peggy = (function() {
-		/*
-			Constructor for building a Peggy Grammar. 
-		*/
-		Peggy = function(name) {
-			if (!name) {
-				throw 'A grammar name is required';
-			}
-			this.name = name;
-			this.rules = {
-				count: 0
-			};
-			this.resolve = function(ruleName) {
-				return Peggy.resolveAlias(this, ruleName);
-			};
-			return this;
-		};
+(function(){
 
-		Peggy.version = "@VERSION";
+	var root = this;
 
-		var jsTypes = "Boolean Number String Function Array Date RegExp Object".split(" ");
+	var sequence = "..",
+		choice = "||",
+		zeroOrMore = "*",
+		oneOrMore = "+",
+		and = "&",
+		not = "!",
+		optional = "?",
+		terminal = ".";
 
-		Peggy.types = {};
-		// Build the types collection based on JavaScript object definitions
-		for (var t = 0; t < jsTypes.length; t++) {
-			Peggy.types["[object " + jsTypes[t] + "]"] = jsTypes[t].toLowerCase();
+	var ruleFlags = [choice, zeroOrMore, oneOrMore, and, not, optional];
+
+	var Peggy = function(def, ext){
+		this.exts = ext;
+		this.rules = [];
+		_.each(def, function(rule, key){
+			this.rules.push({
+				name: key,
+				decl: rule,
+				type: getType(rule)
+			});
+		}, this);
+	};
+
+	Peggy.version = "<%= pkg.version %>";
+
+	if (typeof exports !== 'undefined') {
+		if (typeof module !== 'undefined' && module.exports) {
+			exports = module.exports = Peggy;
 		}
+		exports.Peggy = Peggy;
+	} else {
+		root.Peggy = Peggy;
+	}
 
-		/*
-			Used to determine the type of JavaScript object. Returns a lower case
-			version of all the JavaScript data types.
-		*/
-		Peggy.type = function(declaration) {
-			return Peggy.types[Object.prototype.toString.call(declaration)];
-		};
+	Peggy.prototype = {
+		parse: function(val){
+			this.input = new Peggy.StringScanner(val);
+			this.tree = {};
+			if(execute.call(this, this.root(), this.tree)){
+				return this.tree;
+			} else {
+				throw "Failed to parse tree.";
+			}
+		},
+		root: function(){
+			return this.rules[0];
+		},
+		resolve: function(name){
+			if(_.isArray(name)){
+				return { name: 'NEED', decl: name, type: getType(name) };
+			} else {
+				return _.find(this.rules, function(rule){ return rule.name === name; });
+			}
+		}
+	};
 
-		/*
-			Used to determine the 'type' of a rule by the contents of its 
-			declaration. This is useful when the declaration isn't wrapped in a standard
-			Rule model. There are essentially 2 types of rules: terminal and non-temrinal.
-			Terminal rules will simply be a declaration (like regexp). Non-terminal rules are 
-			arrays of rules (both terminal and non-terminal). These non-terminal rule types
-			will be denoted by a 'type' property on the declaration.
-		*/
-		Peggy.ruleType = function(declaration) {
-			var type = Peggy.type(declaration);
-			if (type === 'regexp') return 'terminal';
-			if (type === 'string') {
-				if (declaration.charAt(0) === ':' && declaration.length > 1) return 'alias';
-				return 'stringTerminal';
-			}
-			// This is where choice, sequence, any, not, and, repeat come from
-			if (type === 'array') {
-				return declaration.type;
-			}
-			if (type === 'object') {
-				return 'rule';
-			}
-		};
+	var execute = function(rule, tree){
+		if(!isRule(rule)) rule = this.resolve(rule);
+		// the condition on rule type is because sometimes it's a regex
+		tree = setCurrent.call(this, rule, tree);
+		return executions[rule.type || getType(rule)].call(this, rule, tree);
+	};
 
-		/*
-			Builds a rule. This is the core building function in which the
-			declaration of the rule is translated to one of the rule types. 
-			This does not add anything to the grammar rather is a constructor
-			for a rule.
-		*/
-		Peggy.buildRule = function(grammar, declaration, extension, execute) {
-			// if this declaration is already a rule don't rebuild it but override ext and exec
-			if(Peggy.isRule(declaration)) {
-				if(extension) declaration.extension = extension;
-				if(execute) declaration.execute = execute;
-				return declaration;
-			}
-				
-			// determine the type of rule we'll build based on kind of declaration
-			var type = Peggy.ruleType(declaration);
-			return {
-				grammar: grammar,
-				type: type,
-				declaration: declaration,
-				isTerminal: type === 'terminal' || type === 'stringTerminal',
-				/*
-					this is a function that will be called to evaluate the value found
-					from a parse.
-				*/
-				extension: extension,
-				/* 
-					This allows for rules to be created with a standard 'execution'
-					function or be provided with a special function.
-				*/
-				execute: execute || Peggy.Executions[type],
-				/*
-					A special bucket for the rule to keep info in. Useable 
-					during the parsing/matching process.
-				*/
-				scope: {}
-			};
-		};
+	var setCurrent = function(rule, tree){
+		var current = rule.name || rule;
+		if(!tree[current]) tree[current] = {};
+		return tree[current];
+	};
 
-		// Quick list of Peggy Rule types (not the same as Peggy types)
-		var ruleTypes = "sequence choice any repeat and not".split(" ");
-
-		/*
-			Returns true if declaration has a type and it matches one of
-			the Peggy rule types. False otherwise.
-		*/
-		Peggy.isRule = function(declaration){
-			if(!declaration.type) return false;
-			var l = ruleTypes.length;
-			while(l--){
-				if(ruleTypes[l] === declaration.type) return true;
+	var addToTree = function(match, tree){
+		if(tree[this.name]){
+			if(!_.isArray(tree[this.name])){
+				tree[this.name] = [tree[this.name]];
 			}
-			return false;
-		};
+			tree[this.name].push(match);
+		} else {
+			tree[this.name] = match;
+		}
+	};
 
-		/*
-			Returns the full Rule for the alias provided. Searches against
-			the rules collection by the name of the rule. 
-		*/
-		Peggy.resolveAlias = function(grammar, alias) {
-			alias = alias.charAt(0) === ':' ? alias.substr(1) : alias;
-			for (var i = 0; i < grammar.rules.count; i++) {
-				if (grammar.rules[i].name === alias) {
-					return grammar.rules[i];
-				}
+	var executions = {
+		// API for executions: r = rule, t = tree, RETURN boolean
+		// sequence
+		"..": function(r, t){
+			return _.all(r.decl, function(rule){ return execute.call(this, rule, t); }, this);
+		},
+		// oneOrMore
+		"+": function(r, t){
+			var count = 0, rule = distill.call(this, r);
+			while(execute.call(this, rule[1], t)){count ++; }
+			return count >= 1;
+		},
+		// zeroOrMore
+		"*": function(r, t){
+			var rule = distill.call(this, r);
+			while(execute.call(this, rule[1], t)){/* nothing */}
+			return true;
+		},
+		// terminal
+		".": function(r, t){
+			var context = {};
+			// sometimes we get full rules - we just want regexp
+			if(!_.isRegExp(r)){
+				context.name = r.name;
+				r = r.decl;
+			} else {
+				context.name = r.toString();
 			}
-		};
-		
-		return Peggy;
-	})();
-})();
+			var match = this.input.scan(r);
+			if(match){
+				addToTree.call(context, match, t);
+				return true;
+			} else {
+				return false;
+			}
+		}
+	};
+
+	var distill = function(rule){
+		if(!_.isArray(rule) && _.isObject(rule)) return rule.decl;
+		if(_.isArray(rule) && rule.length === 2) rule = rule[1];
+		return this.resolve(rule).decl;
+	};
+
+	var isRule = function(rule){
+		return !_.isString(rule) && !_.isArray(rule) && _.isObject(rule);
+	};
+
+	var isSequence = function(rule){
+		return _.isArray(rule) && !_.contains(ruleFlags, _.first(rule));
+	};
+
+	var isChoice = function(rule){
+		return _.isArray(rule) && _.first(rule) === choice;
+	};
+
+	var isOneOrMore = function(rule){
+		return _.isArray(rule) && _.first(rule) === oneOrMore;
+	};
+
+	var isZeroOrMore = function(rule){
+		return _.isArray(rule) && _.first(rule) === zeroOrMore;
+	};
+
+	var isTerminal = function(rule){
+		return _.isRegExp(rule);
+	};
+
+	var getType = function(decl){
+		if(isSequence(decl)) return sequence;
+		if(isChoice(decl)) return choice;
+		if(isOneOrMore(decl)) return oneOrMore;
+		if(isZeroOrMore(decl)) return zeroOrMore;
+		if(isTerminal(decl)) return terminal;
+	};
+
+}).call(this);

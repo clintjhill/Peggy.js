@@ -3,12 +3,54 @@ Peggy.js - A simpler PEG generator in JavaScript
 ## Description
 Please visit [http://clintjhill.github.com/Peggy.js/](http://clintjhill.github.com/Peggy.js/) for more information.
 
-## Requirements to build and run tests
+## API
 
-1. GNU Make
-2. [Node.js](http://nodejs.org/) 0.5.0 or greater
-3. [Node.js Package Manager](http://npmjs.org/) 1.0.0 or greater
-4. jasmine-node `npm install -g jasmine-node`
+#### Functions (as described here: [Parsing Expression Grammar](http://en.wikipedia.org/wiki/Parsing_expression_grammar))
+- sequence 			[val, val]
+- choice 			["||", val, val]
+- 0 or more 		["*", val]
+- 1 or more			["+", val]
+- optional (0 or 1)	["?", val]
+- and 				["&", val]
+- not 				["!", val]
+	
+	var css = new Peggy({
+		"sheet": ["rules", "medias", "imports"],
+		"rules": ["+", "rule"],
+		"medias": ["*", "media"],
+		"imports": ["*", "import"],
+		"rule": [
+			"ruleName",
+			"openBracket",
+			"ruleBody",
+			"closeBracket"
+		],
+		"ruleName": [/\w+/, ["*", "whitespace"]],
+		"openBracket": [/\{/],
+		"ruleBody": ["*", "property"],
+		"closeBracket": [/\}/],
+		"property": [
+			"propertyName",
+			"propertyValue"
+		],
+		"propertyName": [/\w+/, ["*", "whitespace"], /:/, ["*", "whitespace"]],
+		"propertyValue": [/\w+/, ["*", "whitespace"], /;/, ["*", "whitespace"]],
+		"whitespace": [/\s+/]
+	},
+	{
+		"sheet": function(rules, medias, imports){
+
+		},
+		"rules": function(rule){
+
+		},
+		"rule": function(ruleName, openBracket, ruleBody, closeBracket){
+
+		},
+		"property": function(propertyName, propertyValue){
+
+		}
+	});
 
 ## License 
 

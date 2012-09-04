@@ -16,23 +16,22 @@ module.exports = function(grunt){
 			}
 		},
 		concat: {
-			hitch: {
-				src: ["src/peggy.js", "src/peggy.prototype.js", "src/engine.js", "src/executions.js", "src/scanner.js", "src/match.js"],
+			core: {
+				src: ["lib/underscore-1.3.3/underscore.js", "src/peggy.js", "src/scanner.js"],
 				dest: "dist/<%=pkg.name%>-<%=pkg.version%>.js"
 			}
 		},
 		min: {
-			hitch: {
+			core: {
 				src: ["<banner>", "dist/<%=pkg.name%>-<%=pkg.version%>.js"],
 				dest: "dist/<%=pkg.name%>-<%=pkg.version%>.min.js"
 			}
 		},
-		jasmine: {
-			index: ['specs/index.html'],
-			grammars: ['specs/grammars.html']
+		qunit: {
+			core: "tests/index.html"
 		}
 	});
 
-	grunt.registerTask("default", "lint concat min jasmine");
+	grunt.registerTask("default", "lint concat min qunit");
 	
 };
