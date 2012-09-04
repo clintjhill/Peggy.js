@@ -13,45 +13,47 @@ Please visit [http://clintjhill.github.com/Peggy.js/](http://clintjhill.github.c
 - optional (0 or 1)	["?", val]
 - and 				["&", val]
 - not 				["!", val]
+
 ```javascript	
-	var css = new Peggy({
-		"sheet": ["rules", "medias", "imports"],
-		"rules": ["+", "rule"],
-		"medias": ["*", "media"],
-		"imports": ["*", "import"],
-		"rule": [
-			"ruleName",
-			"openBracket",
-			"ruleBody",
-			"closeBracket"
-		],
-		"ruleName": [/\w+/, ["*", "whitespace"]],
-		"openBracket": [/\{/],
-		"ruleBody": ["*", "property"],
-		"closeBracket": [/\}/],
-		"property": [
-			"propertyName",
-			"propertyValue"
-		],
-		"propertyName": [/\w+/, ["*", "whitespace"], /:/, ["*", "whitespace"]],
-		"propertyValue": [/\w+/, ["*", "whitespace"], /;/, ["*", "whitespace"]],
-		"whitespace": [/\s+/]
+var css = new Peggy({
+	"sheet": ["rules", "medias", "imports"],
+	"rules": ["+", "rule"],
+	"medias": ["*", "media"],
+	"imports": ["*", "import"],
+	"rule": [
+		"ruleName",
+		"openBracket",
+		"ruleBody",
+		"closeBracket"
+	],
+	"ruleName": [/\w+/, ["*", "whitespace"]],
+	"openBracket": [/\{/],
+	"ruleBody": ["*", "property"],
+	"closeBracket": [/\}/],
+	"property": [
+		"propertyName",
+		"propertyValue"
+	],
+	"propertyName": [/\w+/, ["*", "whitespace"], /:/, ["*", "whitespace"]],
+	"propertyValue": [/\w+/, ["*", "whitespace"], /;/, ["*", "whitespace"]],
+	"whitespace": [/\s+/]
+},
+{
+	"sheet": function(rules, medias, imports){
+
 	},
-	{
-		"sheet": function(rules, medias, imports){
+	"rules": function(rule){
 
-		},
-		"rules": function(rule){
+	},
+	"rule": function(ruleName, openBracket, ruleBody, closeBracket){
 
-		},
-		"rule": function(ruleName, openBracket, ruleBody, closeBracket){
+	},
+	"property": function(propertyName, propertyValue){
 
-		},
-		"property": function(propertyName, propertyValue){
-
-		}
-	});
+	}
+});
 ```
+
 ## License 
 
 (The MIT License)
