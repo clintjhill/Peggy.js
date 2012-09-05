@@ -87,18 +87,45 @@
 		// API for executions: r = rule, t = tree, RETURN boolean
 		// sequence
 		"..": function(r, t){
-			return _.all(r.decl, function(rule){ return execute.call(this, rule, t); }, this);
+			var exec = this.exts[this.current];
+			var args = [];
+			var all = _.all(r.decl, function(rule){ 
+				var i = execute.call(this, rule, t); 
+				args.push(this.currentNode[this.current]);
+				return i;
+			}, this);
+			if(all) {
+				if(exec) exec.apply(this, args);
+				return true;
+			} else {
+				return false;
+			}
 		},
 		// oneOrMore
 		"+": function(r, t){
 			var count = 0, rule = distill.call(this, r);
-			while(execute.call(this, rule[1], t)){count ++; }
-			return count >= 1;
+			var exec = this.exts[this.current];
+			var args = [];
+			while(execute.call(this, rule[1], t)){
+				count ++; 
+				args.push(this.currentNode[this.current]);
+			}
+			if(count >= 1){
+				if(exec) exec.apply(this, args);
+				return true;
+			} else {
+				return false;
+			}
 		},
 		// zeroOrMore
 		"*": function(r, t){
 			var rule = distill.call(this, r);
-			while(execute.call(this, rule[1], t)){/* nothing */}
+			var exec = this.exts[this.current];
+			var args = [];
+			while(execute.call(this, rule[1], t)){
+				args.push(this.currentNode[this.current]);
+			}
+			if(exec) exec.apply(this, args);
 			return true;
 		},
 		// terminal

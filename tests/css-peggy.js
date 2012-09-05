@@ -23,20 +23,20 @@ var css = new Peggy(
 		"whitespace": /\s+/
 	},
 	{
-		"sheet": function(rules, medias, imports){
-			console.log('sheet', rules, medias, imports);
+		"sheet": function(value){
+			console.log('sheet', value);
 		},
-		"rules": function(rule){
-
+		"rules": function(value){
+			console.log('rules', value);
 		},
-		"rule": function(ruleName, openBracket, ruleBody, closeBracket){
-
+		"rule": function(name, open, body, close){
+			console.log('rule', name, open, body, close);
 		},
-		"ruleName": function(name, nested){
-			console.log('ruleName', name, nested);
+		"ruleName": function(name, ws){
+			console.log('ruleName', name, ws);
 		},
-		"property": function(propertyName, propertyValue){
-
+		"property": function(value){
+			console.log('property', value);
 		}
 	}
 );
