@@ -14,7 +14,7 @@
 	var ruleFlags = [choice, zeroOrMore, oneOrMore, and, not, optional];
 
 	var Peggy = function(def, ext){
-		this.exts = ext;
+		this.exts = ext || {};
 		this.rules = [];
 		_.each(def, function(rule, key){
 			this.rules.push({
@@ -58,6 +58,9 @@
 		}
 	};
 
+	/*
+		Every single rule will be executed through this function.
+	*/
 	var execute = function(rule, tree){
 		if(!isRule(rule)) rule = this.resolve(rule);
 		// the condition on rule type is because sometimes it's a regex
@@ -66,36 +69,47 @@
 	};
 
 	var setCurrent = function(rule, tree){
+		// the rule that is currently being 'executed'
 		this.current = rule.name || rule;
-		if(!tree[this.current]) tree[this.current] = {};
+		// set up the tree with the rule's label
+		tree[this.current] = tree[this.current] || {};
+		// the node that is currently being populated
 		this.currentNode = tree;
+		// return the tree labeled by the current rule for processing
 		return tree[this.current];
 	};
 
-	var addToTree = function(match, tree){
-		if(_.isObject(this.node[this.name]) && _.isEmpty(this.node[this.name])){
-			this.node[this.name] = match;
-		} else {
-			if(!_.isArray(this.node[this.name])){
-				this.node[this.name] = [this.node[this.name]];
+	var getCurrent = function(){
+		return {name: this.current, node: this.currentNode, ext: this.exts[this.current]};
+	};
+
+	var applyExtension = function(args, current, tree){
+		if(current.ext){
+			var val = current.ext.apply(current.node, args);
+			if(val){
+				current.node[current.name] = val;
 			}
-			this.node[this.name].push(match);
 		}
+	};
+
+	var getArgument = function(tree, rule){
+		return (_.isObject(tree)) ? tree[rule] || tree[rule[1]] || tree.nested[rule[1]] : tree;
 	};
 
 	var executions = {
 		// API for executions: r = rule, t = tree, RETURN boolean
 		// sequence
 		"..": function(r, t){
-			var exec = this.exts[this.current];
+			var current = getCurrent.call(this);
 			var args = [];
 			var all = _.all(r.decl, function(rule){ 
 				var i = execute.call(this, rule, t); 
-				args.push(this.currentNode[this.current]);
+				// add argument for extension if not by name then by nested anonymous name
+				args.push(getArgument(t, rule));
 				return i;
 			}, this);
 			if(all) {
-				if(exec) exec.apply(this, args);
+				applyExtension(args, current, t);
 				return true;
 			} else {
 				return false;
@@ -104,14 +118,14 @@
 		// oneOrMore
 		"+": function(r, t){
 			var count = 0, rule = distill.call(this, r);
-			var exec = this.exts[this.current];
+			var current = getCurrent.call(this);
 			var args = [];
 			while(execute.call(this, rule[1], t)){
-				count ++; 
-				args.push(this.currentNode[this.current]);
+				count ++;
+				args.push(getArgument(t, rule)); 
 			}
 			if(count >= 1){
-				if(exec) exec.apply(this, args);
+				applyExtension(args, current, t);
 				return true;
 			} else {
 				return false;
@@ -120,27 +134,29 @@
 		// zeroOrMore
 		"*": function(r, t){
 			var rule = distill.call(this, r);
-			var exec = this.exts[this.current];
+			var current = getCurrent.call(this);
 			var args = [];
 			while(execute.call(this, rule[1], t)){
-				args.push(this.currentNode[this.current]);
+				args.push(getArgument(t, rule));
 			}
-			if(exec) exec.apply(this, args);
+			applyExtension(args, current, t);
 			return true;
 		},
 		// terminal
 		".": function(r, t){
-			var context = {node: this.currentNode};
+			var name, exec = this.exts[this.current];
+			var current = getCurrent.call(this);
 			// sometimes we get full rules - we just want regexp
 			if(!_.isRegExp(r)){
-				context.name = r.name;
+				name = r.name;
 				r = r.decl;
 			} else {
-				context.name = r.toString();
+				name = r.toString();
 			}
 			var match = this.input.scan(r);
 			if(match){
-				addToTree.call(context, match, t);
+				applyExtension([match], current, t);
+				this.currentNode[name] = match;
 				return true;
 			} else {
 				return false;

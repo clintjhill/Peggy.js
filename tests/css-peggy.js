@@ -23,20 +23,44 @@ var css = new Peggy(
 		"whitespace": /\s+/
 	},
 	{
-		"sheet": function(value){
-			console.log('sheet', value);
+		"sheet": function(rules){
+			console.log('sheet', rules, this);
 		},
-		"rules": function(value){
-			console.log('rules', value);
+		"rules": function(rule){
+			console.log('rules', rule);
 		},
 		"rule": function(name, open, body, close){
-			console.log('rule', name, open, body, close);
+			console.log('rule', name, open, body, close, this);
 		},
 		"ruleName": function(name, ws){
-			console.log('ruleName', name, ws);
+			console.log('ruleName', name, ws, this);
+			return name;
 		},
-		"property": function(value){
-			console.log('property', value);
+		"ruleBody": function(property){
+			console.log('ruleBody', property);
+		},
+		"openBracket": function(open, ws){
+			console.log('openBracket', open, ws);
+		},
+		"closeBracket": function(close, ws){
+			console.log('closeBracket', close, ws);
+		},
+		"property": function(name, value){
+			var prop = {};
+			prop[name] = value;
+			console.log('property', name, value);
+			return prop;
+		},
+		"propertyName": function(name, ws1, colon, ws2){
+			console.log('propertyName', name, ws1, colon, ws2);
+			return name;
+		},
+		"propertyValue": function(value, ws1, semicolon, ws2){
+			console.log('propertyValue', value, ws1, semicolon, ws2);
+			return value;
+		},
+		"whitespace": function(ws){
+			console.log('whitespace', ws);
 		}
 	}
 );
