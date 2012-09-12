@@ -60,6 +60,7 @@
 
 	/*
 		Every single rule will be executed through this function.
+		Initial call sends "parse" instance tree, not interstitial tree.
 	*/
 	var execute = function(rule, tree){
 		if(!isRule(rule)) rule = this.resolve(rule);
@@ -83,12 +84,14 @@
 		return {name: this.current, node: this.currentNode, ext: this.exts[this.current]};
 	};
 
-	var applyExtension = function(args, current, tree){
+	var applyExtension = function(args, current, terminal){
 		if(current.ext){
 			var val = current.ext.apply(current.node, args);
 			if(val){
 				current.node[current.name] = val;
 			}
+		} else {
+			if(terminal) current.node[current.name] = args[0];
 		}
 	};
 
@@ -100,52 +103,35 @@
 		// API for executions: r = rule, t = tree, RETURN boolean
 		// sequence
 		"..": function(r, t){
-			var current = getCurrent.call(this);
-			var args = [];
+			var current = getCurrent.call(this), args = [];
 			var all = _.all(r.decl, function(rule){ 
 				var i = execute.call(this, rule, t); 
 				// add argument for extension if not by name then by nested anonymous name
 				args.push(getArgument(t, rule));
 				return i;
 			}, this);
-			if(all) {
-				applyExtension(args, current, t);
-				return true;
-			} else {
-				return false;
-			}
+			if(!all) return false;
+			applyExtension(args, current);
+			return true;
 		},
 		// oneOrMore
 		"+": function(r, t){
-			var count = 0, rule = distill.call(this, r);
-			var current = getCurrent.call(this);
-			var args = [];
-			while(execute.call(this, rule[1], t)){
-				count ++;
-				args.push(getArgument(t, rule)); 
-			}
-			if(count >= 1){
-				applyExtension(args, current, t);
-				return true;
-			} else {
-				return false;
-			}
+			var count = 0, rule = distill.call(this, r), current = getCurrent.call(this), args = [];
+			while(execute.call(this, rule[1], t)){ count ++; args.push(getArgument(t, rule)); }
+			if(count < 1) return false;
+			applyExtension(args, current);
+			return true;
 		},
 		// zeroOrMore
 		"*": function(r, t){
-			var rule = distill.call(this, r);
-			var current = getCurrent.call(this);
-			var args = [];
-			while(execute.call(this, rule[1], t)){
-				args.push(getArgument(t, rule));
-			}
-			applyExtension(args, current, t);
+			var rule = distill.call(this, r), current = getCurrent.call(this), args = [];
+			while(execute.call(this, rule[1], t)){ args.push(getArgument(t, rule)); }
+			applyExtension(args, current);
 			return true;
 		},
 		// terminal
 		".": function(r, t){
-			var name, exec = this.exts[this.current];
-			var current = getCurrent.call(this);
+			var name, current = getCurrent.call(this);
 			// sometimes we get full rules - we just want regexp
 			if(!_.isRegExp(r)){
 				name = r.name;
@@ -154,13 +140,9 @@
 				name = r.toString();
 			}
 			var match = this.input.scan(r);
-			if(match){
-				applyExtension([match], current, t);
-				this.currentNode[name] = match;
-				return true;
-			} else {
-				return false;
-			}
+			if(!match) return false;
+			applyExtension([match], current, true);
+			return true;
 		}
 	};
 

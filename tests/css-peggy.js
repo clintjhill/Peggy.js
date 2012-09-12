@@ -4,20 +4,12 @@ var css = new Peggy(
 		"rules": ["+", "rule"],
 		//"medias": ["*", "media"],
 		//"imports": ["*", "import"],
-		"rule": [
-			"ruleName",
-			"openBracket",
-			"ruleBody",
-			"closeBracket"
-		],
+		"rule": [ "ruleName", "openBracket", "ruleBody", "closeBracket" ],
 		"ruleName": [/\w+/, ["*", "whitespace"]],
 		"openBracket": [/\{/, ["*", "whitespace"]],
 		"ruleBody": ["*", "property"],
 		"closeBracket": [/\}/, ["*", "whitespace"]],
-		"property": [
-			"propertyName",
-			"propertyValue"
-		],
+		"property": [ "propertyName", "propertyValue" ],
 		"propertyName": [/\w+/, ["*", "whitespace"], /:/, ["*", "whitespace"]],
 		"propertyValue": [/\w+/, ["*", "whitespace"], /;/, ["*", "whitespace"]],
 		"whitespace": /\s+/
