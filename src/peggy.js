@@ -160,97 +160,62 @@
 		if(!isRule(rule)) {
 			rule = this.resolve(rule);
 		}
-		tree = setCurrent.call(this, rule, tree);
 		return executions[rule.type].call(this, rule, tree);
-	};
-
-	var setCurrent = function(rule, tree){
-		// the rule that is currently being 'executed'
-		this.current = rule.name;
-		// set up the tree with the rule's label
-		tree[this.current] = tree[this.current] || { fresh: true };
-		// the node that is currently being populated
-		this.currentNode = tree;
-		// return the tree labeled by the current rule for processing
-		return tree[this.current];
-	};
-
-	var getCurrent = function(){
-		// this is an object to help build the tree in interstitial states
-		return {
-			name: this.current, 
-			node: this.currentNode, 
-			ext: this.exts[this.current]
-		};
 	};
 
 	var getArgument = function(tree, rule){
 		if(!isRule(rule)) {
 			rule = this.resolve(rule);
 		}
-		var val, eventId = this.eventId;
+		var arg, eventId = this.eventId;
 		if(_.isArray(tree[rule.name]) || _.isObject(tree[rule.name])){
-			_.each(tree[rule.name], function(match){
+			_.each(tree[rule.name], function(match, index){
 				if(_.isArray(match)){
-					val = [];
+					arg = [];
 					_.each(match, function(innerMatch){
 						if(innerMatch.eventId === eventId){
-							val.push(innerMatch.value);
+							arg.push(innerMatch.value);
 						}
 					});
 				} else if(_.isObject(match)) {
 					if(match.eventId === eventId){
-						val = match.value;
+						if(index == 1){
+							arg = [arg];
+						}
+						if(_.isArray(arg)){
+							arg.push(match.value);
+						} else {
+							arg = match.value;
+						}						
 					}	
 				} else {
-					val = match;
+					arg = match;
 				}			
 			});
 		} else {
-			val = tree[rule.name];
+			arg = tree[rule.name];
 		}
-		return val;
+		return arg;
 	};
 
-	var setValue = function(args, current){
-		if(args){
-			// set the value with an event id
-			var val = { 
+	var updateTree = function(values, tree, rule){
+		var value;
+		if(this.exts[rule.name]){
+			value = this.exts[rule.name].apply(tree, values);
+		} else {
+			value = { 
 				// if events are stopped we want the same eventId on matches
 				eventId: (this.stopEvents) ? this.eventId : ++this.eventId, 
-				value: args 
+				value: values 
 			};
-			if(_.isArray(current.node[current.name])) {
-				current.node[current.name].push(val);
-			} else {
-				if(current.node[current.name].fresh){
-					current.node[current.name] = val;	
-				} else {
-					if(!_.isArray(current.node[current.name])){
-						current.node[current.name] = [current.node[current.name]];
-					}
-					current.node[current.name].push(val);
-				}
-			}
 		}
-	};
-
-	var extend = function(values, current){
-		if(current.ext){
-			var val = current.ext.apply(current.node, values);
-			if(val){
-				if(!current.node[current.name].peggyExt){
-					current.node[current.name] = val;
-					current.node[current.name].peggyExt = true;	
-				} else {
-					if(_.isObject(val)){
-						_.extend(current.node[current.name], val);
-					} else {
-						current.node[current.name] = val;
-						current.node[current.name].peggyExt = true;	
-					}
-				}				
-			}
+		if(tree[rule.name] && !_.isArray(tree[rule.name])){
+			tree[rule.name] = [tree[rule.name]];
+		}
+		if(_.isArray(tree[rule.name])) {
+			tree[rule.name].push(value);
+		} else {
+			tree[rule.name] = value;
 		}
 	};
 
@@ -263,20 +228,19 @@
 	var executions = {
 		// sequence
 		"..": function(r, t){
-			var args = [], current = getCurrent.call(this);
+			var args = [];
 			var all = _.all(r.decl, function(rule){ 
 				var i = execute.call(this, rule, t); 
 				args.push(getArgument.call(this, t, rule));
 				return i;
 			}, this);
 			if(!all) return false;
-			extend.call(this, args, current);
+			updateTree.call(this, args, t, r);
 			return true;
 		},
 		// oneOrMore
 		"+": function(r, t){
-			var count = 0, args = [], current = getCurrent.call(this);
-			// make this a wrapping function instead of flags on each boundary
+			var count = 0, args = [];
 			this.pauseEvents(function(){
 				while(execute.call(this, r.decl, t)){ 
 					count++; 
@@ -287,12 +251,12 @@
 				this.eventId--;
 				return false;
 			}
-			extend.call(this, args, current);
+			updateTree.call(this, args, t, r);
 			return true;
 		},
 		// zeroOrMore
 		"*": function(r, t){
-			var count = 0, args = [], current = getCurrent.call(this);
+			var count = 0, args = [];
 			this.pauseEvents(function(){			
 				while(execute.call(this, r.decl, t)){
 					count++; 
@@ -302,16 +266,14 @@
 			if(count < 1){
 				this.eventId--;
 			}
-			extend.call(this, args, current);
+			updateTree.call(this, args, t, r);
 			return true;
 		},
 		// terminal
 		".": function(r, t){
-			var current = getCurrent.call(this);
 			var match = this.input.scan(r.decl);
 			if(!match) return false;
-			setValue.call(this, match, current);
-			extend.call(this, [match], current);
+			updateTree.call(this, [match], t, r);
 			return true;
 		}
 	};

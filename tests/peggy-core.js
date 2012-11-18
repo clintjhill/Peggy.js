@@ -39,6 +39,7 @@ test("Extending nested rules matched values", function(){
 	var test = new Peggy(
 		{"a": [/\w/, ["+", /\d/]]},
 		{"a": function(w, d){
+			console.log('extension', w, d);
 			return {w: w, d: d}
 		}}
 	);
