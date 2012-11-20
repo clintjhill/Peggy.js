@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Peggy.js by clintjhill</title>
-    
+
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="javascripts/scale.fix.js"></script>
@@ -16,157 +16,107 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1>Peggy.js</h1>
-        <p>A simpler PEG generator in JavaScript</p>
-        <p class="view"><a href="https://github.com/clintjhill/Peggy.js">View the Project on GitHub <small>clintjhill/Peggy.js</small></a></p>
+        <h1 class="header">Peggy.js</h1>
+        <p class="header">A simpler PEG generator in JavaScript</p>
+
         <ul>
-          <li><a href="dist/peggy-0.9.0.js">Download <strong>Source</strong></a></li>
-          <li><a href="dist/peggy-min-0.9.0.js">Download <strong>Minified</strong></a></li>
-          <li><a href="https://github.com/clintjhill/Peggy.js">Fork On <strong>GitHub</strong></a></li>
+          <li class="download"><a class="buttons" href="https://github.com/clintjhill/Peggy.js/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/clintjhill/Peggy.js/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/clintjhill/Peggy.js">View On GitHub</a></li>
         </ul>
-        <p><small>Current Version: <strong>0.9.0</strong></small></p>
-      </header> 
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/clintjhill">clintjhill</a></p>
+
+
+      </header>
       <section>
+        <h1>Peggy.js - A simpler PEG in JavaScript</h1>
 
-<h1>Peggy</h1>
-<p>Peggy is a Parsing Expression Grammar (PEG) generator implemented in JavaScript that is designed to be small and easy-to-use. There <a href="http://pegjs.majda.cz/">are</a> <a href="http://www.tinlizzie.org/ometa/">other</a> PEG JavaScript implementations out there but they are large or complicated. Peggy aims to be the better choice by remaining small and simple.</p>
+<h2>Description</h2>
 
-<h3>Get Peggy</h3>
-<p>Peggy can be used in both client and server side sitations.</p>
-<pre><code>npm install peggy</code></pre>
-<p>Or download a copy of Peggy for use in the browser: <a href="dist/peggy-0.9.0.js">0.9.0</a></p>
-<h3>Start with some examples</h3>
+<p>Please visit <a href="http://clintjhill.github.com/Peggy.js/">http://clintjhill.github.com/Peggy.js/</a> for more information.</p>
 
-<p>Each example demonstrates the ability to create a grammar through the Peggy JavaScript API. They are progressively built, so starting with the "Additive Easy" example you will see a very small and naive implementation and build on that for "Additive Enhanced".</p>
+<h2>API</h2>
+
+<h4>Functions (as described here: <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a>)</h4>
 
 <ul>
-<li><a href="examples/additive-easy.html">Additive Easy</a></li>
-<li><a href="examples/additive-enhanced.html">Additive Enhanced</a></li>
-</ul>
+<li>sequence          [val, val]</li>
+<li>choice            ["||", val, val]</li>
+<li>0 or more         ["*", val]</li>
+<li>1 or more         ["+", val]</li>
+<li>optional (0 or 1) ["?", val]</li>
+<li>and               ["&amp;", val]</li>
+<li>not               ["!", val]</li>
+</ul><div class="highlight"><pre><span class="kd">var</span> <span class="nx">css</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Peggy</span><span class="p">({</span>
+    <span class="s2">"sheet"</span><span class="o">:</span> <span class="p">[</span><span class="s2">"rules"</span><span class="p">,</span> <span class="s2">"medias"</span><span class="p">,</span> <span class="s2">"imports"</span><span class="p">],</span>
+    <span class="s2">"rules"</span><span class="o">:</span> <span class="p">[</span><span class="s2">"+"</span><span class="p">,</span> <span class="s2">"rule"</span><span class="p">],</span>
+    <span class="s2">"medias"</span><span class="o">:</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"media"</span><span class="p">],</span>
+    <span class="s2">"imports"</span><span class="o">:</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"import"</span><span class="p">],</span>
+    <span class="s2">"rule"</span><span class="o">:</span> <span class="p">[</span>
+        <span class="s2">"ruleName"</span><span class="p">,</span>
+        <span class="s2">"openBracket"</span><span class="p">,</span>
+        <span class="s2">"ruleBody"</span><span class="p">,</span>
+        <span class="s2">"closeBracket"</span>
+    <span class="p">],</span>
+    <span class="s2">"ruleName"</span><span class="o">:</span> <span class="p">[</span><span class="sr">/\w+/</span><span class="p">,</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"whitespace"</span><span class="p">]],</span>
+    <span class="s2">"openBracket"</span><span class="o">:</span> <span class="p">[</span><span class="sr">/\{/</span><span class="p">],</span>
+    <span class="s2">"ruleBody"</span><span class="o">:</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">],</span>
+    <span class="s2">"closeBracket"</span><span class="o">:</span> <span class="p">[</span><span class="sr">/\}/</span><span class="p">],</span>
+    <span class="s2">"property"</span><span class="o">:</span> <span class="p">[</span>
+        <span class="s2">"propertyName"</span><span class="p">,</span>
+        <span class="s2">"propertyValue"</span>
+    <span class="p">],</span>
+    <span class="s2">"propertyName"</span><span class="o">:</span> <span class="p">[</span><span class="sr">/\w+/</span><span class="p">,</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"whitespace"</span><span class="p">],</span> <span class="sr">/:/</span><span class="p">,</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"whitespace"</span><span class="p">]],</span>
+    <span class="s2">"propertyValue"</span><span class="o">:</span> <span class="p">[</span><span class="sr">/\w+/</span><span class="p">,</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"whitespace"</span><span class="p">],</span> <span class="sr">/;/</span><span class="p">,</span> <span class="p">[</span><span class="s2">"*"</span><span class="p">,</span> <span class="s2">"whitespace"</span><span class="p">]],</span>
+    <span class="s2">"whitespace"</span><span class="o">:</span> <span class="p">[</span><span class="sr">/\s+/</span><span class="p">]</span>
+<span class="p">},</span>
+<span class="p">{</span>
+    <span class="s2">"sheet"</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">rules</span><span class="p">,</span> <span class="nx">medias</span><span class="p">,</span> <span class="nx">imports</span><span class="p">){</span>
 
-<h3>Digging Deeper</h3>
-<p>With Peggy.js there are two ways to create a PEG:</p>
+    <span class="p">},</span>
+    <span class="s2">"rules"</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">rule</span><span class="p">){</span>
 
-<ul>
-<li>Peggy JavaScript API</li>
-<li>Peggy Syntax - BETA</li>
-</ul>
+    <span class="p">},</span>
+    <span class="s2">"rule"</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ruleName</span><span class="p">,</span> <span class="nx">openBracket</span><span class="p">,</span> <span class="nx">ruleBody</span><span class="p">,</span> <span class="nx">closeBracket</span><span class="p">){</span>
 
-<h4>Peggy JavaScript API</h4>
+    <span class="p">},</span>
+    <span class="s2">"property"</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">propertyName</span><span class="p">,</span> <span class="nx">propertyValue</span><span class="p">){</span>
 
-<p>To view the API documentation go to the <a href="api.html">JavaScript API</a>, or read on to begin creating a grammar with the Peggy constructor.</p>
+    <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
 
-<pre><code>var sample = new Peggy('additive');
-</code></pre>
+<h2>License</h2>
 
-<p>Now you can build rules from that grammar with the following API.</p>
+<p>(The MIT License)</p>
 
-<pre><code>sample.rule(name, declaration, extension);
-</code></pre>
+<p>Copyright (c) 2012 Clint Hill &lt;<a href="mailto:clint.hill@gmail.com">clint.hill@gmail.com</a>&gt;</p>
 
-<p>To create the top of the parsing tree (the initial starting expression) use the <code>root</code> function.</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:</p>
 
-<pre><code>sample.root(name, declaration, extension);
-</code></pre>
+<p>The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.</p>
 
-<p>The <code>name</code> parameter provides a way for the grammar to identify the rule during processing and as well for aliasing in other rules later. The <code>declaration</code> parameter can be a string, regular expression or an alias to another rule in the grammar. Aliases take the form of the name preceded by a colon such as ':number'. The <code>extension</code> parameter is a function used to evaluate the value of the matched string. It receives a <code>value</code> parameter that is an object (or array) populated with matches for the given rule.</p>
-
-<pre><code>sample.root('additive', 
-  sample.sequence(':number', ':plus', ':number'), 
-  function(value){
-    return value.number[0] + value.number[1];
-});
-
-sample.rule('number', /\d+/, function(value){ 
-    return new Number(value); 
-});
-
-sample.rule('number', '+');
-</code></pre>
-
-<p>With rules set against the grammar you can now parse strings.</p>
-
-<pre><code>var result = sample.parse('6+6');   
-// result is 12
-</code></pre>
-
-<p>To dig deeper into the Peggy JavaScript API read the documentation here: <a href="api.html">JavaScript API</a></p>
-
-<h4>Peggy Syntax - BETA</h4>
-
-<p>To create a grammar named 'demo' you could write the following Peggy syntax. <em>The following is Beta and not currently included in the build. It is incomplete and buggy.</em></p>
-
-<pre><code>demo = {
-    additive: (:number, :plus, :number) {{
-        return value.number[0] + value.number[1];
-    }},
-    number: (:digit, :space) {{
-        return value.digit;
-    }},
-    plus: ('+', :space),
-    digit: (/\d+/, :space) {{
-        return new Number(value[0]);
-    }},
-    space: /\s+/
-}
-</code></pre>
-
-<h4>Breakdown of Peggy Syntax</h4>
-
-<p>Using the demo grammar above the following are definitions of the components of Peggy syntax.</p>
-
-<dl>
-  <dt>Grammar</dt>
-  <dd><code>demo</code> - the name of this set of rules.</dd>
-  <dt>Rule</dt>
-  <dd><code>additive</code> - a single rule name.</dd>
-  <dt>Non-Terminal</dt>
-  <dd><code>(:number, :plus, :number)</code> - a Non-Terminal definition of a rule. In this case a Sequence. Repeat and Choice Non-Terminals are also available.</dd>
-  <dt>Terminal</dt>
-  <dd><code>/\d+/</code> - a Terminal definition, simply a singular term from the content of the parsing. Can be a string or a regular expression.</dd>
-  <dt>Alias</dt>
-  <dd><code>:number</code> - a name to apply to another rule within the grammar.</dd>
-  <dt>Extension</dt>
-  <dd><code>{{ return new Number(value[0]); }}</code> - a JavaScript block of code (wrapped with 2 curly braces) to execute that is provided a <code>Value</code> object.</dd>
-  <dt>Value</dt>
-  <dd><code>value[0]</code>- an object that is the result of the rule evaluation.</dd>
-</dl>
-
-<h3>What is Peggy and what's a PEG?</h3>
-<p>A <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Parsing Expression Grammar</a> (PEG) is used to create a set of rules with which you can recognize values from within strings. They are best applied to strings that represent <a href="http://en.wikipedia.org/wiki/Formal_language">known sets of values</a> in either linear or heirarchal form. Peggy is a JavaScript API to help generate a PEG.</p>
-
-<h3>Developers</h3>
-<p>If you would like to help out or extend Peggy - please do! Below is information about building this project.</p>
-
-<h4>Building Peggy.js</h4>
-<ul>
-<li><code>make</code> : creates both a peggy.js and a peggy-min.js file inside of a /dist directory (with version number).</li>
-
-<li><code>make lint</code> : tests the source of Peggy.js against JSHint</li>
-
-<li><code>make spec</code> : run tests in /specs directory</li>
-
-<li><code>make clean</code> : deletes the /dist directory</li>
-</ul>
-
-<h4>Requirements to build and run tests</h4>
-
-<ul>
-<li>GNU Make</li>
-<li>
-<a href="http://nodejs.org/">Node.js</a> 0.5.0 or greater</li>
-<li>
-<a href="http://npmjs.org/">Node.js Package Manager</a> 1.0.0 or greater</li>
-<li>jasmine-node <code>npm install -g jasmine-node</code>
-</li>
-</ul>
-
+<p>THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
       </section>
       <footer>
-        <p>This project is maintained by <a href="https://github.com/clintjhill">clintjhill</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
       </footer>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
   </body>
 </html>
