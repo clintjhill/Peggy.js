@@ -124,16 +124,21 @@
 				return {
 					name: name.toString(),
 					decl: name,
-					type: terminal,
-					unNamed: true
+					type: terminal
 				};				
 			} else if(_.isArray(name) && !isSequence(name)){
 				// Eg. name = ["+", /\d/]
+				// TODO: Need to deal with deeply nested rules here
 				return {
 					name: name[1].toString(),
 					decl: name[1],
-					type: getType(name),
-					flagged: true
+					type: getType(name)
+				};
+			} else if(_.isArray(name) && isSequence(name)){
+				return {
+					name: name.toString(),
+					decl: name,
+					type: sequence
 				};
 			} else {
 				// Eg. name = "whitespace"
@@ -236,7 +241,6 @@
 			if(count < 1) {
 				return false;
 			}
-			//_.extend(t, interim); 
 			updateTree.call(this, args, t, r);
 			return true;
 		},
@@ -246,8 +250,7 @@
 			while(execute.call(this, r.decl, interim)){
 				count++; 
 				args.push(getArgument.call(this, interim, r)); 
-			}
-			//_.extend(t, interim);		
+			}	
 			updateTree.call(this, args, t, r);
 			return true;
 		},
