@@ -109,17 +109,7 @@
 				throw "Failed to parse tree.";
 			}
 		},
-		/*
-			This is used to provide sync on the One or More and Zero or More
-			rules. Matches in those rules are considered a part of the same
-			match event while others are individual events.
-		*/
-		pauseEvents: function(execution){
-			this.eventId++; // push an event to provide new ID for this rule
-			this.stopEvents = true; // event increment will stop
-			execution.call(this);
-			this.stopEvents = false; // event increment will start
-		},
+		
 		root: function(){
 			return this.rules[0];
 		},
@@ -134,14 +124,16 @@
 				return {
 					name: name.toString(),
 					decl: name,
-					type: terminal
+					type: terminal,
+					unNamed: true
 				};				
 			} else if(_.isArray(name) && !isSequence(name)){
 				// Eg. name = ["+", /\d/]
 				return {
 					name: name[1].toString(),
 					decl: name[1],
-					type: getType(name)
+					type: getType(name),
+					flagged: true
 				};
 			} else {
 				// Eg. name = "whitespace"
@@ -167,53 +159,46 @@
 		if(!isRule(rule)) {
 			rule = this.resolve(rule);
 		}
-		var arg, eventId = this.eventId;
-		if(_.isArray(tree[rule.name]) || _.isObject(tree[rule.name])){
-			_.each(tree[rule.name], function(match, index){
-				if(_.isArray(match)){
-					arg = [];
-					_.each(match, function(innerMatch){
-						if(innerMatch.eventId === eventId){
-							arg.push(innerMatch.value);
-						}
-					});
-				} else if(_.isObject(match)) {
-					if(match.eventId === eventId){
-						if(index == 1){
-							arg = [arg];
-						}
-						if(_.isArray(arg)){
-							arg.push(match.value);
-						} else {
-							arg = match.value;
-						}						
-					}	
-				} else {
-					arg = match;
-				}			
-			});
-		} else {
-			arg = tree[rule.name];
+
+		var arg = null, eventId = this.eventId, result = tree[rule.name];
+
+		if(!result){
+			return tree;
 		}
-		return arg;
+		if(_.isObject(result) && !_.isArray(result)){
+			if(_.has(result, 'eventId') && result.eventId === eventId){
+				arg = result;
+			}
+		} else if(_.isArray(result)){
+			arg = _.pluck(_.filter(result, function(val){
+				return _.has(val, 'eventId') && val.eventId === eventId;
+			}), "value");
+			if(arg.length === 1){
+				arg = arg[0];
+			}
+		} else {
+			arg = result;
+		}
+		return arg.value || arg;
 	};
+
 
 	var updateTree = function(values, tree, rule){
 		var value;
 		if(this.exts[rule.name]){
+			if(!_.isArray(values)){ values = [values]; }
 			value = this.exts[rule.name].apply(tree, values);
 		} else {
-			value = { 
-				// if events are stopped we want the same eventId on matches
-				eventId: (this.stopEvents) ? this.eventId : ++this.eventId, 
-				value: values 
-			};
+			value = { eventId: this.eventId, value: values };
 		}
+		// if there is a value on the tree and it's not an array we need it to be
 		if(tree[rule.name] && !_.isArray(tree[rule.name])){
 			tree[rule.name] = [tree[rule.name]];
 		}
+		// if it's an array be sure to push onto stack
 		if(_.isArray(tree[rule.name])) {
 			tree[rule.name].push(value);
+		// otherwise we're just setting the value for the branch on the tree
 		} else {
 			tree[rule.name] = value;
 		}
@@ -228,11 +213,14 @@
 	var executions = {
 		// sequence
 		"..": function(r, t){
-			var args = [];
+			var args = [], interim = {};
 			var all = _.all(r.decl, function(rule){ 
-				var i = execute.call(this, rule, t); 
-				args.push(getArgument.call(this, t, rule));
-				return i;
+				if(execute.call(this, rule, interim)){
+					args.push(getArgument.call(this, interim, rule));
+					return true;
+				} else {
+					return false;
+				}				
 			}, this);
 			if(!all) return false;
 			updateTree.call(this, args, t, r);
@@ -240,32 +228,26 @@
 		},
 		// oneOrMore
 		"+": function(r, t){
-			var count = 0, args = [];
-			this.pauseEvents(function(){
-				while(execute.call(this, r.decl, t)){ 
-					count++; 
-					args.push(getArgument(t, r)); 
-				}	
-			});
+			var count = 0, args = [], interim = {};
+			while(execute.call(this, r.decl, interim)){ 
+				count++; 
+				args.push(getArgument.call(this, interim, r)); 
+			}	
 			if(count < 1) {
-				this.eventId--;
 				return false;
 			}
+			//_.extend(t, interim); 
 			updateTree.call(this, args, t, r);
 			return true;
 		},
 		// zeroOrMore
 		"*": function(r, t){
-			var count = 0, args = [];
-			this.pauseEvents(function(){			
-				while(execute.call(this, r.decl, t)){
-					count++; 
-					args.push(getArgument(t, r)); 
-				}
-			});
-			if(count < 1){
-				this.eventId--;
+			var count = 0, args = [], interim = {};		
+			while(execute.call(this, r.decl, interim)){
+				count++; 
+				args.push(getArgument.call(this, interim, r)); 
 			}
+			//_.extend(t, interim);		
 			updateTree.call(this, args, t, r);
 			return true;
 		},
@@ -273,7 +255,8 @@
 		".": function(r, t){
 			var match = this.input.scan(r.decl);
 			if(!match) return false;
-			updateTree.call(this, [match], t, r);
+			++this.eventId;
+			updateTree.call(this, match, t, r);
 			return true;
 		}
 	};
