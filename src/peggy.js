@@ -47,6 +47,10 @@
 		return _.isArray(rule) && _.first(rule) === zeroOrMore;
 	};
 
+	var isNot = function(rule){
+		return _.isArray(rule) && _.first(rule) === not;
+	};
+
 	var isTerminal = function(rule){
 		return _.isRegExp(rule);
 	};
@@ -60,6 +64,7 @@
 		if(isOneOrMore(decl)) return oneOrMore;
 		if(isZeroOrMore(decl)) return zeroOrMore;
 		if(isTerminal(decl)) return terminal;
+		if(isNot(decl)) return not;
 	};
 
 	/*
@@ -129,11 +134,15 @@
 			} else if(_.isArray(name) && !isSequence(name)){
 				// Eg. name = ["+", /\d/]
 				// TODO: Need to deal with deeply nested rules here
-				return {
-					name: name[1].toString(),
-					decl: name[1],
-					type: getType(name)
-				};
+				if(_.isArray(name[1])){
+					return this.resolve(name[1]);
+				} else {
+					return {
+						name: name[1].toString(),
+						decl: name[1],
+						type: getType(name)
+					};
+				}
 			} else if(_.isArray(name) && isSequence(name)){
 				return {
 					name: name.toString(),
@@ -253,6 +262,10 @@
 			}	
 			updateTree.call(this, args, t, r);
 			return true;
+		},
+		// not
+		"!": function(r, t){
+			return !this.input.test(r.decl);
 		},
 		// terminal
 		".": function(r, t){

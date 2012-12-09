@@ -113,7 +113,7 @@ test("Deeply nested one-or-more", function(){
 	var result = test.parse("...");
 	ok(result, "Should have a result.");
 	//TODO: BLAH! This is pretty nasty. Edge-case but nasty still.
-	equal(result.a['+,/\\./'].value.length, 1, "Should have 1 match.");
+	equal(result.a['/\\./'].value.length, 3, "Should have 3 matches.");
 });
 
 test("sequence nested within one-or-more", function(){
@@ -194,4 +194,16 @@ test("Extending matched values (nested zero-or-more *)", function(){
 	equal(alphaNumeric.a.d[0], 1, "First digit should be 1.");
 	equal(alphaNumeric.a.d[1], 2, "Second digit should be 2.");
 	equal(alphaNumeric.a.d[2], 3, "Third digit should be 3.");
+});
+
+test("Not rule", function(){
+	var test = new Peggy({"a": ["!", /\d/]});
+	throws(function(){ test.parse("3"); }, "Should throw due to digit.");
+	test.parse("w");
+	deepEqual(test.tree, {}, "Should be an empty result.");
+});
+
+test("Complex Not rule", function(){
+	var test = new Peggy({});
+	ok("do something!");
 });
