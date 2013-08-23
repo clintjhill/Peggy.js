@@ -1,7 +1,10 @@
 (function(){
 
+/*
+	Whitespace builtin: /^(?:[\t\n\r ]+|[\t\n\r ]*((\/\/.*|\/\*(.|\n|\r)*?\*\/)[\t\n\r ]*))+/
+*/
 	/*
-		Symbols for the types of rules that can be created with Peggy.	
+		Symbols for the types of rules that can be created with Peggy.
 	*/
 	var sequence = "..",
 		choice = "||",
@@ -19,15 +22,15 @@
 
 	/*
 		Predicate to determine that an Object is a Rule.
-		Requires a 'name', 'type' and 'decl' property on 
+		Requires a 'name', 'type' and 'decl' property on
 		an Object in order to be a Rule.
 	*/
 	var isRule = function(rule){
 		return !_.isString(rule) &&
-			!_.isArray(rule) && 
-			_.isObject(rule) && 
-			_.has(rule, 'name') && 
-			_.has(rule, 'type') && 
+			!_.isArray(rule) &&
+			_.isObject(rule) &&
+			_.has(rule, 'name') &&
+			_.has(rule, 'type') &&
 			_.has(rule, 'decl');
 	};
 
@@ -114,7 +117,7 @@
 				throw "Failed to parse tree.";
 			}
 		},
-		
+
 		root: function(){
 			return this.rules[0];
 		},
@@ -130,7 +133,7 @@
 					name: name.toString(),
 					decl: name,
 					type: terminal
-				};				
+				};
 			} else if(_.isArray(name) && !isSequence(name)){
 				// Eg. name = ["+", /\d/]
 				// TODO: Need to deal with deeply nested rules here
@@ -151,8 +154,8 @@
 				};
 			} else {
 				// Eg. name = "whitespace"
-				return _.find(this.rules, function(rule){ 
-					return rule.name === name; 
+				return _.find(this.rules, function(rule){
+					return rule.name === name;
 				});
 			}
 		}
@@ -224,57 +227,61 @@
 
 		Each execution requires the Rule and the current Tree.
 	*/
-	var executions = {
-		// sequence
-		"..": function(r, t){
-			var args = [], interim = {};
-			var all = _.all(r.decl, function(rule){ 
-				if(execute.call(this, rule, interim)){
-					args.push(getArgument.call(this, interim, rule));
-					return true;
-				} else {
-					return false;
-				}				
-			}, this);
-			if(!all) return false;
-			updateTree.call(this, args, t, r);
-			return true;
-		},
-		// oneOrMore
-		"+": function(r, t){
-			var count = 0, args = [], interim = {};
-			while(execute.call(this, r.decl, interim)){ 
-				count++; 
-				args.push(getArgument.call(this, interim, r)); 
-			}	
-			if(count < 1) {
-				return false;
-			}
-			updateTree.call(this, args, t, r);
-			return true;
-		},
-		// zeroOrMore
-		"*": function(r, t){
-			var count = 0, args = [], interim = {};		
-			while(execute.call(this, r.decl, interim)){
-				count++; 
-				args.push(getArgument.call(this, interim, r)); 
-			}	
-			updateTree.call(this, args, t, r);
-			return true;
-		},
-		// not
-		"!": function(r, t){
-			return !this.input.test(r.decl);
-		},
-		// terminal
-		".": function(r, t){
-			var match = this.input.scan(r.decl);
-			if(!match) return false;
-			++this.eventId;
-			updateTree.call(this, match, t, r);
-			return true;
-		}
-	};
+	var executions = {};
+
+	// sequence
+  executions[sequence] = function(r, t){
+    var args = [], interim = {};
+    var all = _.all(r.decl, function(rule){
+      if(execute.call(this, rule, interim)){
+        args.push(getArgument.call(this, interim, rule));
+        return true;
+      } else {
+        return false;
+      }
+    }, this);
+    if(!all) return false;
+    updateTree.call(this, args, t, r);
+    return true;
+  };
+
+	// oneOrMore
+  executions[oneOrMore] = function(r, t){
+    var count = 0, args = [], interim = {};
+    while(execute.call(this, r.decl, interim)){
+      count++;
+      args.push(getArgument.call(this, interim, r));
+    }
+    if(count < 1) {
+      return false;
+    }
+    updateTree.call(this, args, t, r);
+    return true;
+  };
+
+  // zeroOrMore
+  executions[zeroOrMore] = function(r, t){
+    var count = 0, args = [], interim = {};
+    while(execute.call(this, r.decl, interim)){
+      count++;
+      args.push(getArgument.call(this, interim, r));
+    }
+    updateTree.call(this, args, t, r);
+    return true;
+  };
+
+  // not
+  executions[not] = function(r, t){
+    return !this.input.test(r.decl);
+  };
+
+  // terminal
+  executions[terminal] = function(r, t){
+    var match = this.input.scan(r.decl);
+    if(!match) return false;
+    ++this.eventId;
+    updateTree.call(this, match, t, r);
+    return true;
+  };
 
 }).call(this);

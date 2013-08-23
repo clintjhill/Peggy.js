@@ -2,7 +2,7 @@
   "author": "Clint Hill <clint.hill@gmail.com>",
   "name": "peggy",
   "description": "A simpler PEG generator in JavaScript",
-  "version": "0.15.0",
+  "version": "0.2.0",
   "homepage": "http://clintjhill.github.com/Peggy.js/",
   "repository": {
     "type": "git",
