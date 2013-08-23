@@ -12,14 +12,12 @@
   "scripts": {
     "test": "grunt qunit"
   },
-  "engines": {
-    "node": "~0.6.10"
-  },
-  "dependencies": {},
   "devDependencies": {
-    "grunt": ">=0.3.12",
-    "jasmine-node": ">=1.0.20",
-    "grunt-jasmine-task": ">=0.2.2"
-  },
-  "optionalDependencies": {}
+    "grunt": "~0.4.0rc6",
+    "grunt-contrib-jshint": "~0.1.0",
+    "grunt-contrib-qunit": "~0.1.1",
+    "grunt-contrib-uglify": "~0.1.1",
+    "grunt-contrib-connect": "~0.1.0",
+    "grunt-contrib-concat": "~0.1.2",
+  }
 }
