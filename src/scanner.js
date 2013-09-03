@@ -25,6 +25,10 @@ Peggy.StringScanner.prototype = {
 		return this.source.slice(this.head);
 	},
 
+  getScanned: function() {
+    return this.source.substr(0, this.head);
+  },
+
 	setState:  function(matches, values) {
 		var _a, _b;
 		this.head = (typeof(_a = ((typeof values === "undefined" || values === null) ? undefined : values.head)) !== "undefined" && _a !== null) ? _a: this.head;

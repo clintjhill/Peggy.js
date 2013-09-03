@@ -1,209 +1,325 @@
 module("Peggy Core");
 
 test("Builds rules in constructor", function(){
-	var test = new Peggy({ root: /\w/ });
-	ok(test.rules, "Rules should exist");
-	equal(test.rules.length, 1, "Should be 1 rule");
-	equal(test.root().name, "root", "Root should be root");
+  var test = new Peggy({ root: /\w/ });
+  ok(test.rules, "Rules should exist");
+  equal(test.rules.length, 1, "Should be 1 rule");
+  equal(test.root().name, "root", "Root should be root");
 });
 
 test("Rule resolving", function(){
-	var test = new Peggy({ "a": /\w/, "b": /\s/ });
-	ok(test.resolve("a"), "should find 'a' rule");
-	equal(test.resolve("a").name, "a", "should find rule with 'a' name");
-	notEqual(test.resolve("a").name, "b", "should not match 'b' name");
-	equal(test.resolve("a").decl.toString(), /\w/, "declaration should equal regexp /\w/");
-	notEqual(test.resolve("a").decl.toString(), /\s/, "declaration should not equal regexp /\s/");
+  var test = new Peggy({ "a": /\w/, "b": /\s/ });
+  ok(test.resolve("a"), "should find 'a' rule");
+  equal(test.resolve("a").name, "a", "should find rule with 'a' name");
+  notEqual(test.resolve("a").name, "b", "should not match 'b' name");
+  equal(test.resolve("a").decl.toString(), /\w/, "declaration should equal regexp /\w/");
+  notEqual(test.resolve("a").decl.toString(), /\s/, "declaration should not equal regexp /\s/");
 });
 
 test("Tree building", function(){
-	var test = new Peggy({ "a": /\w/ });
-	ok(test.parse("test"), "Should return on successful parse.");
-	throws(function(){ test.parse(" ") }, "Should throw on bad parse.");
-	test.parse("word");
-	ok(test.tree, "Should have tree after successful parse.");
-	equal(test.eventId, 1, "Should have 1 event.");
-	equal(test.tree.a.value, "w", "Should have parsed 1 character (\\w).");
-	equal(test.tree.a.eventId, 1, "Should be event 1.");
+  var test = new Peggy({ "a": /\w/ });
+  ok(test.parse("test"), "Should return on successful parse.");
+  test.parse("word");
+  ok(test.tree, "Should have tree after successful parse.");
+  equal(test.eventId, 1, "Should have 1 event.");
+  equal(test.tree.a, "w", "Should have parsed 1 character (\\w).");
 });
 
-test("Parse returns Tree", function(){
-	var test = new Peggy({ "a": /\w/ });
-	var result = test.parse("B");
-	ok(result, "Should have a result.");
-	deepEqual(result, test.tree, "Should have a result equal to the tree.");
+test("Parse returns Object or false value", function(){
+  var test = new Peggy({ "a": /\w/ });
+
+  // positive case
+  var result = test.parse("B");
+  ok(result, "Should have a result.");
+  ok(_.isObject(result), "Should be an Object.");
+  deepEqual(result, test.tree, "Should have a result equal to the tree.");
+
+  // negative case
+  result = test.parse("-");
+  ok(!result, "Should have a result.");
+  ok(_.isBoolean(result), "Should be a Boolean.");
 });
+
+module("Peggy Execution Types");
 
 test("terminal", function(){
-	var test = new Peggy({"a": /\w/});
-	throws(function(){ test.parse(" "); }, "Should throw on bad parse.");
-	test.parse("A");
-	ok(test.tree, "Should have tree after successful parse.");
-	ok(!_.isArray(test.tree.a.value), "Should have a non-Array value.");
-	equal(test.eventId, 1, "Should have 1 event.");
-	equal(test.tree.a.value, "A", "Should equal A.");
-	equal(test.tree.a.eventId, 1, "Should be the first event.");
+  // test regular-expression type terminal
+  var test = new Peggy({"a": /\w/});
+
+  // positive case
+  test.parse("A");
+  ok(test.tree, "Should have tree after successful parse.");
+  ok(!_.isArray(test.tree.a), "Should have a non-Array value.");
+  equal(test.eventId, 1, "Should have 1 event.");
+  equal(test.tree.a, "A", "Should equal A.");
+  
+  // negative case
+  test.parse("-");
+  ok(!test.tree, "Should not have a tree after failed parse.");
+
+  // test non-regular-expression type terminal
+  test = new Peggy({"b": "B"});
+
+  // positive case
+  test.parse("B");
+  ok(test.tree, "Should have tree after successful parse.");
+  ok(!_.isArray(test.tree.b), "Should have a non-Array value.");
+  equal(test.eventId, 1, "Should have 1 event.");
+  equal(test.tree.b, "B", "Should equal B.");
+
+  // negative case
+  test.parse("1");
+  ok(!test.tree, "Should not have a tree after failed parse.");
 });
 
 test("sequence", function(){
-	var test = new Peggy({"a": [/\w/, /\s/, /\w/]});
-	throws(function(){ test.parse(" w "); }, "Should throw on bad parse.");
-	test.parse("w w");
-	ok(test.tree, "Should have tree after successful parse.");
-	ok(_.isArray(test.tree.a.value), "Should have an Array value.");
-	deepEqual(test.eventId, 3, "Should have 3 events.");
-	deepEqual(test.tree.a.value[0], "w", "Should equal w.");
-	deepEqual(test.tree.a.value[1], " ", "Should equal space.");
-	deepEqual(test.tree.a.value[2], "w", "Should equal w.");
+  var test = new Peggy({
+    "a": ["word", "space", "number"],
+    "word": /\w*/,
+    "space": /\s/,
+    "number": /\d/
+  });
+
+  // positive case
+  test.parse("word 1");
+  ok(!_.isArray(test.tree.a), "Should not be an Array value.");
+  equal(test.eventId, 3, "Should have 3 events.");
+  equal(test.tree.a.word, "word", "Should equal word.");
+  equal(test.tree.a.space, " ", "Should equal space.");
+  equal(test.tree.a.number, 1, "Should equal 1.");
+
+  // negative case
+  test.parse(" word ");
+  ok(!test.tree, "Should not have a tree after failed parse.");
+
+  // negative case
+  test.parse("word ");
+  ok(!test.tree, "Should not have a tree after failed parse.");
+
+  // Special case where rule is duplicated within a sequence.
+  // The result should be an array value for that name (index/order maintained).
+  test = new Peggy({
+    "a": ["word", "space", "word"],
+    "word": /\w*/,
+    "space": /\s/
+  });
+
+  test.parse("peggy good");
+  ok(!_.isArray(test.tree.a), "Should not be an Array value.");
+  equal(test.eventId, 3, "Should have 3 events.");
+  equal(test.tree.a.word[0], "peggy", "Should equal peggy.");
+  equal(test.tree.a.space, " ", "Should equal space.");
+  equal(test.tree.a.word[1], "good", "Should equal good.");
+
 });
 
 test("zero-or-more", function(){
-	// zero-or-more like this would never throw - never fail a parse.
-	var test = new Peggy({"a": ["*", /\w/]});
-	test.parse(" ");
-	ok(test.tree, "Should have tree after a successful parse.");
-	equal(test.eventId, 0, "Should have no event (no match made).");
-	ok(_.isArray(test.tree.a.value), "Should have an array value.");
-	test.parse("w");
-	ok(test.tree, "Should have tree after a successful parse.");
-	equal(test.eventId, 1, "Should have 1 event.");
-	deepEqual(test.tree.a.value.length, 1, "Should have 1 result.");
-	deepEqual(test.tree.a.value[0][/\w/], {eventId: 1, value: "w"}, "Should have 1 match.");
+  var test = new Peggy({
+    "a": ["*", "word"],
+    "word": /\w/
+  });
+
+  // zero-or-more is always positive case
+  test.parse(" ");
+  equal(test.eventId, 0, "Should have no event (no match made).");
+
+  // zero-or-more is always an array result
+  test.parse("w");
+  ok(_.isArray(test.tree.a.word), "Should have an array value.");
+  equal(test.tree.a.word.length, 1, "Should have 1 result.");
+
+  test.parse("what");
+  equal(test.eventId, 4, "Should have 1 event.");
+  equal(test.tree.a.word.length, 4, "Should have 4 result.");
+  equal(test.tree.a.word[0], "w", "Should have 1 match.");
+  equal(test.tree.a.word[1], "h", "Should have 1 match.");
+  equal(test.tree.a.word[2], "a", "Should have 1 match.");
+  equal(test.tree.a.word[3], "t", "Should have 1 match.");
 });
 
 test("one-or-more", function(){
-	var test = new Peggy({"a": ["+", /\w/]});
-	throws(function(){ test.parse(" "); }, "Should throw on bad parse.");
-	test.parse("w");
-	ok(test.tree, "Should have tree after a successful parse.");
-	ok(_.isArray(test.tree.a.value), "Should have an array value.");
-	equal(test.eventId, 1, "Should have 1 event.");
-	deepEqual(test.tree.a.value.length, 1, "Should have 1 result.");
-	deepEqual(test.tree.a.value[0][/\w/], {eventId: 1, value: "w"}, "Should have 1 match.");
+  var test = new Peggy({
+    "a": ["+", "word"],
+    "word": /\w/
+  });
+
+  // positive one case
+  test.parse("w");
+  ok(!_.isArray(test.tree.a), "Should not have an array value.");
+  equal(test.eventId, 1, "Should have 1 event.");
+  equal(test.tree.a.word, "w", "Should equal w.");
+
+  // positive more case
+  test.parse("what");
+  ok(!_.isArray(test.tree.a), "Should not have an array value.");
+  equal(test.eventId, 4, "Should have 4 event.");
+  equal(test.tree.a.word.length, 4, "Should have 4 result.");
+  equal(test.tree.a.word[0], "w", "Should have 1 match.");
+  equal(test.tree.a.word[1], "h", "Should have 1 match.");
+  equal(test.tree.a.word[2], "a", "Should have 1 match.");
+  equal(test.tree.a.word[3], "t", "Should have 1 match.");
+
+  // negative case
+  test.parse("");
+  equal(test.eventId, 0, "Should have no event (no match made).");
+  ok(!test.tree, "Should not have a tree after failed parse.");
 });
 
-test("one-or-more with rule symbol", function(){
-	var test = new Peggy({"a": ["+", "pees"], "pees": /p/});
-	throws(function(){ test.parse("nope"); }, "Should throw on bad parse.");
-	test.parse("parse");
-	ok(test.tree, "should have a tree after successful parse.");
-	test.parse("pplease");
-	ok(test.tree, "Should have a tree after successful parse.");
-	equal(test.tree.a.value[0].pees.length, 2, "Should have 2 pees.");
-	equal(test.tree.a.value[0].pees[0].eventId, 1, "First index should have eventId of 1.");
-	equal(test.tree.a.value[0].pees[0].value, "p", "Should match p.");
-	equal(test.tree.a.value[0].pees[1].eventId, 2, "Second index should have eventId of 2.");
-	equal(test.tree.a.value[0].pees[1].value, "p", "Should match p.");
+test("choice", function(){
+  var test = new Peggy({
+    "a": ["||", "lowerA", "upperA"],
+    "lowerA": "a",
+    "upperA": "A"
+  });
+
+  // positive cases
+  test.parse("a");
+  equal(test.eventId, 1, "Should have 1 event.");
+  equal(test.tree.a, "a", "Should match lower.");
+
+  // positive case
+  test.parse("A");
+  equal(test.eventId, 1, "Should have 1 event.");
+  equal(test.tree.a, "A", "Should match upper.");
+
+  // negative case
+  test.parse("b");
+  ok(!test.tree, "Should not have a tree after failed parse.");
 });
 
-test("Nested one-or-more", function(){
-	var test = new Peggy({"a": ["+", ["+", /\./]] });
-	var result = test.parse("...");
-	ok(result, "Should have a result.");
-	equal(result.a.value.length, 1, "Should have 1 match.");
-	equal(result.a.value[0][/\./].value.length, 3, "Should have 3 dots.");
+test("optional", function(){
+  var test = new Peggy({
+    "a": ["word", "optionalSemi", "word"],
+    "word": /\w+/,
+    "optionalSemi": ["?", "semi-colon"],
+    "semi-colon": ";"
+  });
+
+  test.parse("peggy;peggy");
+  equal(test.eventId, 3, "Should have 3 events.");
+
+  test = new Peggy({
+    "a": ["word", "optionalSemi", "word"],
+    "word": /\w+/,
+    "optionalSemi": ["?", "separator"],
+    "separator": ["||", "space", "semi-colon"],
+    "space": /\s/,
+    "semi-colon": ";"
+  });
+
+  test.parse("peggy;peggy");
+  equal(test.eventId, 3, "Should have 3 events.");
+
+  test.parse("peggy peggy");
+  equal(test.eventId, 3, "Should have 3 events.");
 });
 
-test("Deeply nested one-or-more", function(){
-	var test = new Peggy({"a": ["+", ["+", ["+", /\./]]] },
-		{"a": function(dots){
-			var a = dots;
-			return a;
-		}});
-	var result = test.parse("...");
-	ok(result, "Should have a result.");
-	//TODO: BLAH! This is pretty nasty. Edge-case but nasty still.
-	equal(result.a['/\\./'].value.length, 3, "Should have 3 matches.");
+test("not", function(){
+  // simple case
+  var test = new Peggy({
+    "a": ["!", "digit"], 
+    "digit": /\d/
+  });
+  test.parse("w");
+  equal(test.eventId, 1, "Should have 1 event.");
 });
 
-test("sequence nested within one-or-more", function(){
-	var test = new Peggy({"a": ["+", [/\w/, /\s/]]});
-	var result = test.parse("w b c ");
-	ok(result, "Should have a result.");
-	ok(_.isArray(result.a.value), "Result should be an Array.");
-	//TODO: BLAH! This is pretty nasty too. 
+module("Peggy Nested Executions");
+
+test("Nested One-or-more", function(){
+  var test = new Peggy({
+    "a": ["+", "dots"],
+    "dots": ["+", "dot"],
+    "dot": /\.\s/ 
+  });
+
+  // positive case
+  var result = test.parse(". . . ");
+  equal(test.eventId, 3, "Should have 3 events.");
+  // result is now just the AST of the parse
+  ok(result, "Should have a result.");
+  ok(result.a.dots, "Should have dots matches.");
+  ok(result.a.dots[0].dot, "Should have dot matches.");
+  ok(_.isArray(result.a.dots[0].dot), "Should have array value for dot.");
+  equal(result.a.dots[0].dot[0], ". ", "Should be .");
+  equal(result.a.dots[0].dot[1], ". ", "Should be .");
+  equal(result.a.dots[0].dot[2], ". ", "Should be .");
+
+  // negative case
+  result = test.parse("..");
+  ok(!result, "Should not have a result.");
 });
 
-test("Nested one-or-more rule in a Sequence", function(){
-	var test = new Peggy( {"a": [/\w/, ["+", /\d/]]} );
-	test.parse("w1");
-	ok(test.tree, "Should have a tree after successful parse.");
-	equal(test.eventId, 2, "Should have 2 match events.");
-	equal(test.tree.a.value[0], "w", "Should equal w.");
-	equal(test.tree.a.value[1].length, 1, "Should have 1 digit.");
-	test.parse("w123");
-	equal(test.eventId, 4, "Should have 4 match events.");
-	ok(_.isArray(test.tree.a.value[1]), "Nested value should be Array.");
-	equal(test.tree.a.value[1].length, 3, "Should have 3 matches.");
+test("Nested Sequence in One-or-more", function(){
+
+  // very simple sequence in a one-or-more
+  var test = new Peggy({
+    "a": ["+", "dots"],
+    "dots": ["dot", "space"],
+    "dot": /\./,
+    "space": /\s/
+  });
+
+  var result = test.parse(". . . ");
+  equal(test.eventId, 6, "Should have 6 events.");
+  ok(_.isArray(result.a.dots), "Should have array value for dots.");
+  deepEqual(result.a.dots[0], {"dot": ".", "space": " "}, "Should have a dot/space sequence match.");
+
+  // a more complicated sequence with one-or-mores inside
+  test = new Peggy({
+    "a": ["+", "combos"],
+    "combos": ["dots", "spaces"],
+    "dots": ["+", "dot"],
+    "spaces": ["+", "space"],
+    "dot": /\./,
+    "space": /\s/
+  });
+
+  // a bit more complicated test
+  result = test.parse(".. ..... ... ");
+  equal(result.a.combos[0].dots.dot.length, 2, "First dots should be 2.");
+  equal(result.a.combos[1].dots.dot.length, 5, "Second dots should be 5.");
+  equal(result.a.combos[2].dots.dot.length, 3, "Third dots should be 3.");
 });
 
-test("Extending matched values", function(){
-	var test = new Peggy(
-		{"a": /\w/},
-		{"a": function(w){ 
-			ok(w, "Should return an argument for w.");
-			return w + "-test"; 
-		}
-	});
-	test.parse("x");
-	equal(test.tree.a, "x-test", "Extension should have applied.");
-	throws(function(){ test.parse("---"); }, "Should throw on bad parse.");
+module("Peggy Extending Matches");
+
+test("Simple extension", function(){
+  var test = new Peggy({
+    "a": /\w+/
+  },{
+    "a": function(result){
+      return {"found": result};
+    }
+  });
+
+  test.parse("value");
+  equal(test.tree.a.found, "value", "Should have found value.");
 });
 
-test("Extending matched values (nested one-or-more +)", function(){
-	var test = new Peggy(
-		// a sequence with a one-or-more rule
-		{"a": [/\w/, ["+", /\d/]]},
-		{"a": function(w, d){ 
-			equal(arguments.length, 2, "Should return 2 args.");
-			ok(w, "Should return an argument for w.");
-			ok(d, "Should return an argument for d.");
-			ok(_.isArray(d), "Should return an Array for one-or-more.");
-			return {w: w, d: d}; 
-		}
-	});
-	throws(function(){ test.parse("w"); }, "Should throw on bad parse.");
-	test.parse("w123");
-	equal(test.tree.a.w, "w", "Should equal w.");
-	equal(test.tree.a.d.length, 3, "Should have 3 digits.");
-	equal(test.tree.a.d[0], 1, "First digit should be 1.");
-	equal(test.tree.a.d[1], 2, "Second digit should be 2.");
-	equal(test.tree.a.d[2], 3, "Third digit should be 3.");
-});
+test("Extensions fire for every execution", function(){
 
-test("Extending matched values (nested zero-or-more *)", function(){
-	var test = new Peggy(
-		// a sequence with a zero-or-more rule
-		{"a": [/\w/, ["*", /\d/]]},
-		{"a": function(w, d){ 
-			equal(arguments.length, 2, "Should return 2 args.");
-			ok(w, "Should return an argument for w.");
-			// if there are zero results this is an empty Array
-			ok(d, "Should return an argument for d.");
-			ok(_.isArray(d), "Should return an Array for zero-or-more.");
-			return {w: w, d: d}; 
-		}
-	});
-	throws(function(){ test.parse(" "); }, "Should throw on bad parse.");
-	var charOnly = test.parse("w");
-	ok(charOnly, "Could return just a character parse due to zero-or-more.");
-	var alphaNumeric = test.parse("w123");
-	ok(alphaNumeric, "Should return alpha-numerice.");
-	equal(alphaNumeric.a.w, "w", "Should equal w.");
-	equal(alphaNumeric.a.d.length, 3, "Should have 3 digits.");
-	equal(alphaNumeric.a.d[0], 1, "First digit should be 1.");
-	equal(alphaNumeric.a.d[1], 2, "Second digit should be 2.");
-	equal(alphaNumeric.a.d[2], 3, "Third digit should be 3.");
-});
+  expect(6);
 
-test("Not rule", function(){
-	var test = new Peggy({"a": ["!", /\d/]});
-	throws(function(){ test.parse("3"); }, "Should throw due to digit.");
-	test.parse("w");
-	deepEqual(test.tree, {}, "Should be an empty result.");
-});
+  var test = new Peggy({
+    "a": ["word", "digit", "word", "digit", "word"],
+    "word": /[a-z]+/,
+    "digit": /\d/
+  },{
+    "a": function(result, rule){
+      ok(result, "Fired 'a' extension'");
+      return result;
+    },
+    "word": function(result, rule){
+      ok(result, "Fired 'word' extension'");
+      return result;
+    },
+    "digit": function(result, rule){
+      ok(result, "Fired 'digit' extension'");
+      return result;
+    }
+  });
 
-test("Complex Not rule", function(){
-	var test = new Peggy({});
-	ok("do something!");
+  test.parse("peggy1peggy2peggy");
+
 });

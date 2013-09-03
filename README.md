@@ -52,6 +52,13 @@ var css = new Peggy({
 
 	}
 });
+  /**
+   * This API allows for this kind of code use:
+   *
+   * if(test.parse("x")){
+   *    var ast = test.tree;
+   * }
+   */
 ```
 
 ## License 
